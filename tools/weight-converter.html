@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weight & Mass Converter - Multi-Tools</title>
+    <meta name="description" content="Free online weight and mass converter. Convert between kilograms, pounds, ounces, grams, and more with real-time conversion and detailed explanations.">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Chart.js -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <!-- Header will be loaded dynamically -->
+    <div id="header-placeholder"></div>
+
+    <!-- Main Content -->
+    <main class="container py-5">
+        <div class="row">
+            <div class="col-lg-8">
+                <h1 class="mb-4">Weight & Mass Converter</h1>
+                
+                <!-- Converter Section -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <form id="converterForm">
+                            <div class="row g-3">
+                                <!-- Input Weight -->
+                                <div class="col-md-6">
+                                    <label class="form-label">Input Weight/Mass</label>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" id="inputWeight" step="any" required>
+                                        <select class="form-select" id="fromUnit">
+                                            <option value="kg">Kilograms (kg)</option>
+                                            <option value="g">Grams (g)</option>
+                                            <option value="mg">Milligrams (mg)</option>
+                                            <option value="lb">Pounds (lb)</option>
+                                            <option value="oz">Ounces (oz)</option>
+                                            <option value="st">Stone (st)</option>
+                                            <option value="mt">Metric Tons (t)</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- Output Weight -->
+                                <div class="col-md-6">
+                                    <label class="form-label">Convert To</label>
+                                    <select class="form-select" id="toUnit">
+                                        <option value="lb">Pounds (lb)</option>
+                                        <option value="kg">Kilograms (kg)</option>
+                                        <option value="g">Grams (g)</option>
+                                        <option value="mg">Milligrams (mg)</option>
+                                        <option value="oz">Ounces (oz)</option>
+                                        <option value="st">Stone (st)</option>
+                                        <option value="mt">Metric Tons (t)</option>
+                                    </select>
+                                </div>
+
+                                <!-- Convert Button -->
+                                <div class="col-12">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-exchange-alt"></i> Convert
+                                    </button>
+                                    <button type="reset" class="btn btn-secondary ms-2">
+                                        <i class="fas fa-redo"></i> Reset
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+
+                        <!-- Results Section -->
+                        <div id="results" class="mt-4" style="display: none;">
+                            <h4 class="mb-4">Conversion Result</h4>
+                            
+                            <!-- Result Card -->
+                            <div class="result-card">
+                                <div class="result-value" id="convertedWeight">0 kg</div>
+                                <div class="formula-text mt-2" id="formulaText"></div>
+                            </div>
+
+                            <!-- Common Weight References -->
+                            <div class="card mt-4">
+                                <div class="card-body">
+                                    <h5 class="card-title">Common Weight References</h5>
+                                    <div class="weight-references">
+                                        <div class="reference-item">
+                                            <i class="fas fa-apple-alt"></i>
+                                            <span>Average Apple: 200g / 0.44lb</span>
+                                        </div>
+                                        <div class="reference-item">
+                                            <i class="fas fa-basketball-ball"></i>
+                                            <span>Basketball: 650g / 1.43lb</span>
+                                        </div>
+                                        <div class="reference-item">
+                                            <i class="fas fa-laptop"></i>
+                                            <span>Laptop: 2kg / 4.4lb</span>
+                                        </div>
+                                        <div class="reference-item">
+                                            <i class="fas fa-suitcase"></i>
+                                            <span>Checked Baggage Limit: 23kg / 50lb</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <!-- Ad Space -->
+                <div class="ad-space sidebar-ad mb-4">
+                    <small>Advertisement</small>
+                </div>
+
+                <!-- Tool Info -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">About This Tool</h5>
+                        <p class="card-text">
+                            Convert between different weight and mass units including kilograms, pounds, ounces, grams, and more. 
+                            Get instant conversions with detailed formulas and common weight references.
+                        </p>
+                        <div class="author-credit">
+                            App Built by Aqib Chaudhary
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Conversion Info -->
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Conversion Formulas</h5>
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <strong>Kilograms to Pounds:</strong><br>
+                                lb = kg × 2.20462
+                            </li>
+                            <li class="mb-2">
+                                <strong>Pounds to Kilograms:</strong><br>
+                                kg = lb × 0.453592
+                            </li>
+                            <li class="mb-2">
+                                <strong>Ounces to Grams:</strong><br>
+                                g = oz × 28.3495
+                            </li>
+                            <li class="mb-2">
+                                <strong>Stone to Kilograms:</strong><br>
+                                kg = st × 6.35029
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer will be loaded dynamically -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+    <!-- Custom JavaScript -->
+    <script src="../js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('converterForm');
+            const results = document.getElementById('results');
+            const convertedWeight = document.getElementById('convertedWeight');
+            const formulaText = document.getElementById('formulaText');
+
+            // Conversion factors to kg
+            const toKg = {
+                kg: 1,
+                g: 0.001,
+                mg: 0.000001,
+                lb: 0.453592,
+                oz: 0.0283495,
+                st: 6.35029,
+                mt: 1000
+            };
+
+            // Conversion factors from kg
+            const fromKg = {
+                kg: 1,
+                g: 1000,
+                mg: 1000000,
+                lb: 2.20462,
+                oz: 35.274,
+                st: 0.157473,
+                mt: 0.001
+            };
+
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const inputWeight = parseFloat(document.getElementById('inputWeight').value);
+                const fromUnit = document.getElementById('fromUnit').value;
+                const toUnit = document.getElementById('toUnit').value;
+
+                // Convert to kg first, then to target unit
+                const kgWeight = inputWeight * toKg[fromUnit];
+                const result = kgWeight * fromKg[toUnit];
+
+                // Format the formula text
+                let formula = '';
+                if (fromUnit === toUnit) {
+                    formula = 'No conversion needed';
+                } else if (fromUnit === 'kg') {
+                    formula = `${inputWeight} kg × ${fromKg[toUnit]} = ${result.toFixed(4)} ${toUnit}`;
+                } else if (toUnit === 'kg') {
+                    formula = `${inputWeight} ${fromUnit} × ${toKg[fromUnit]} = ${result.toFixed(4)} kg`;
+                } else {
+                    formula = `${inputWeight} ${fromUnit} → ${kgWeight.toFixed(4)} kg → ${result.toFixed(4)} ${toUnit}`;
+                }
+
+                // Display results
+                convertedWeight.textContent = `${result.toFixed(4)} ${toUnit}`;
+                formulaText.textContent = formula;
+                results.style.display = 'block';
+            });
+
+            // Reset form
+            form.addEventListener('reset', function() {
+                results.style.display = 'none';
+            });
+        });
+    </script>
+</body>
+</html> 

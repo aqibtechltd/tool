@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Income Tax Calculator - Multi-Tools</title>
+    <meta name="description" content="Free online income tax calculator. Calculate your federal and state taxes, understand tax brackets, and estimate your take-home pay.">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Chart.js -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .result-card {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .result-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #0d6efd;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 2rem;
+        }
+
+        .tax-bracket {
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 0.5rem;
+            background-color: #f8f9fa;
+            border-left: 4px solid transparent;
+        }
+
+        .tax-bracket.active {
+            border-left-color: #0d6efd;
+            background-color: #e7f1ff;
+        }
+
+        .form-label {
+            font-weight: 500;
+        }
+
+        .input-group-text {
+            background-color: #f8f9fa;
+        }
+
+        .tooltip-icon {
+            color: #6c757d;
+            cursor: help;
+            margin-left: 0.5rem;
+        }
+
+        .breakdown-table {
+            font-size: 0.9rem;
+        }
+
+        .breakdown-table th {
+            background-color: #f8f9fa;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        .table-container {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 2rem;
+        }
+
+        .tax-breakdown-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .tax-breakdown-item:last-child {
+            border-bottom: none;
+            font-weight: bold;
+        }
+
+        .deduction-section {
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .state-tax-section {
+            border-top: 1px solid #dee2e6;
+            margin-top: 2rem;
+            padding-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header will be loaded dynamically -->
+    <div id="header-placeholder"></div>
+
+    <!-- Main Content -->
+    <main class="container py-5">
+        <div class="row">
+            <div class="col-lg-8">
+                <h1 class="mb-4">Income Tax Calculator</h1>
+                
+                <!-- Calculator Section -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <form id="taxForm" class="row g-3">
+                            <!-- Filing Status -->
+                            <div class="col-12">
+                                <label class="form-label">
+                                    Filing Status
+                                    <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Select your tax filing status"></i>
+                                </label>
+                                <select class="form-select" id="filingStatus" required>
+                                    <option value="single">Single</option>
+                                    <option value="married_joint">Married Filing Jointly</option>
+                                    <option value="married_separate">Married Filing Separately</option>
+                                    <option value="head">Head of Household</option>
+                                </select>
+                            </div>
+
+                            <!-- Annual Income -->
+                            <div class="col-md-6">
+                                <label class="form-label">
+                                    Annual Income
+                                    <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Your total annual income before taxes"></i>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" class="form-control" id="annualIncome" value="50000" min="0" required>
+                                </div>
+                            </div>
+
+                            <!-- Pay Frequency -->
+                            <div class="col-md-6">
+                                <label class="form-label">
+                                    Pay Frequency
+                                    <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="How often you receive your paycheck"></i>
+                                </label>
+                                <select class="form-select" id="payFrequency" required>
+                                    <option value="52">Weekly</option>
+                                    <option value="26">Bi-weekly</option>
+                                    <option value="24">Semi-monthly</option>
+                                    <option value="12">Monthly</option>
+                                    <option value="1">Annually</option>
+                                </select>
+                            </div>
+
+                            <!-- State Selection -->
+                            <div class="col-md-6">
+                                <label class="form-label">
+                                    State
+                                    <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Select your state for state tax calculation"></i>
+                                </label>
+                                <select class="form-select" id="state" required>
+                                    <option value="">Select State</option>
+                                    <!-- States will be populated via JavaScript -->
+                                </select>
+                            </div>
+
+                            <!-- Tax Year -->
+                            <div class="col-md-6">
+                                <label class="form-label">
+                                    Tax Year
+                                    <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Select the tax year for calculation"></i>
+                                </label>
+                                <select class="form-select" id="taxYear" required>
+                                    <option value="2024">2024</option>
+                                    <option value="2023">2023</option>
+                                    <option value="2022">2022</option>
+                                </select>
+                            </div>
+
+                            <!-- Deductions Section -->
+                            <div class="col-12">
+                                <div class="deduction-section">
+                                    <h5 class="mb-3">Deductions & Credits</h5>
+                                    <div class="row g-3">
+                                        <!-- Standard/Itemized Selection -->
+                                        <div class="col-12">
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="radio" name="deductionType" id="standardDeduction" value="standard" checked>
+                                                <label class="form-check-label" for="standardDeduction">Standard Deduction</label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="radio" name="deductionType" id="itemizedDeduction" value="itemized">
+                                                <label class="form-check-label" for="itemizedDeduction">Itemized Deductions</label>
+                                            </div>
+                                        </div>
+
+                                        <!-- Itemized Deductions (initially hidden) -->
+                                        <div class="col-md-6 itemized-fields" style="display: none;">
+                                            <label class="form-label">Mortgage Interest</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">$</span>
+                                                <input type="number" class="form-control" id="mortgageInterest" value="0" min="0">
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6 itemized-fields" style="display: none;">
+                                            <label class="form-label">Property Taxes</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">$</span>
+                                                <input type="number" class="form-control" id="propertyTaxes" value="0" min="0">
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6 itemized-fields" style="display: none;">
+                                            <label class="form-label">Charitable Contributions</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">$</span>
+                                                <input type="number" class="form-control" id="charitableContributions" value="0" min="0">
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6 itemized-fields" style="display: none;">
+                                            <label class="form-label">Medical Expenses</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">$</span>
+                                                <input type="number" class="form-control" id="medicalExpenses" value="0" min="0">
+                                            </div>
+                                        </div>
+
+                                        <!-- Common Deductions/Credits -->
+                                        <div class="col-md-6">
+                                            <label class="form-label">401(k) Contributions</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">$</span>
+                                                <input type="number" class="form-control" id="retirement401k" value="0" min="0">
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <label class="form-label">IRA Contributions</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">$</span>
+                                                <input type="number" class="form-control" id="iraContributions" value="0" min="0">
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <label class="form-label">HSA Contributions</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">$</span>
+                                                <input type="number" class="form-control" id="hsaContributions" value="0" min="0">
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <label class="form-label">Student Loan Interest</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">$</span>
+                                                <input type="number" class="form-control" id="studentLoanInterest" value="0" min="0">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Dependents -->
+                            <div class="col-md-6">
+                                <label class="form-label">
+                                    Number of Dependents
+                                    <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Number of qualifying dependents"></i>
+                                </label>
+                                <input type="number" class="form-control" id="dependents" value="0" min="0">
+                            </div>
+
+                            <!-- Calculate Button -->
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-calculator"></i> Calculate
+                                </button>
+                                <button type="reset" class="btn btn-secondary ms-2">
+                                    <i class="fas fa-redo"></i> Reset
+                                </button>
+                            </div>
+                        </form>
+
+                        <!-- Results Section -->
+                        <div id="results" class="mt-4" style="display: none;">
+                            <h4 class="mb-4">Tax Summary</h4>
+                            
+                            <!-- Summary Cards -->
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-4">
+                                    <div class="result-card">
+                                        <h6>Annual Take-Home Pay</h6>
+                                        <div class="result-value" id="takeHomePay">$0</div>
+                                        <small class="text-muted" id="payPeriodAmount">$0 per period</small>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-4">
+                                    <div class="result-card">
+                                        <h6>Total Tax</h6>
+                                        <div class="result-value" id="totalTax">$0</div>
+                                        <small class="text-muted">Federal + State</small>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-4">
+                                    <div class="result-card">
+                                        <h6>Effective Tax Rate</h6>
+                                        <div class="result-value" id="effectiveRate">0%</div>
+                                        <small class="text-muted">Combined Rate</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tax Brackets -->
+                            <div class="mb-4">
+                                <h5>Your Tax Brackets</h5>
+                                <div id="taxBrackets"></div>
+                            </div>
+
+                            <!-- Charts -->
+                            <div class="row mt-4">
+                                <div class="col-md-6">
+                                    <h5>Income Breakdown</h5>
+                                    <div class="chart-container">
+                                        <canvas id="incomeChart"></canvas>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h5>Tax Distribution</h5>
+                                    <div class="chart-container">
+                                        <canvas id="taxChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Detailed Breakdown -->
+                            <div class="card mt-4">
+                                <div class="card-body">
+                                    <h5 class="card-title">Detailed Breakdown</h5>
+                                    <div class="tax-breakdown" id="breakdown"></div>
+                                </div>
+                            </div>
+
+                            <!-- Pay Period Breakdown -->
+                            <div class="card mt-4">
+                                <div class="card-body">
+                                    <h5 class="card-title">Pay Period Breakdown</h5>
+                                    <div class="tax-breakdown" id="payPeriodBreakdown"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <!-- Ad Space -->
+                <div class="ad-space sidebar-ad mb-4">
+                    <small>Advertisement</small>
+                </div>
+
+                <!-- Tool Info -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">About This Tool</h5>
+                        <p class="card-text">
+                            Calculate your estimated income tax liability and take-home pay. This calculator considers federal 
+                            and state taxes, various deductions, and credits to give you a comprehensive view of your tax situation.
+                        </p>
+                        <div class="author-credit">
+                            App Built by Aqib Chaudhary
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer will be loaded dynamically -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+    <!-- Custom JavaScript -->
+    <script src="../js/main.js"></script>
+    <script>
+        // Initialize tooltips
+        document.addEventListener('DOMContentLoaded', function() {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
+            // Load header and footer
+            fetch('../components/header.html')
+                .then(response => response.text())
+                .then(data => document.getElementById('header-placeholder').innerHTML = data);
+
+            fetch('../components/footer.html')
+                .then(response => response.text())
+                .then(data => document.getElementById('footer-placeholder').innerHTML = data);
+
+            // Populate states dropdown
+            populateStates();
+        });
+
+        // Chart instances
+        let incomeChart = null;
+        let taxChart = null;
+
+        // 2023 Tax Brackets
+        const taxBrackets2023 = {
+            single: [
+                { rate: 0.10, limit: 11000 },
+                { rate: 0.12, limit: 44725 },
+                { rate: 0.22, limit: 95375 },
+                { rate: 0.24, limit: 182100 },
+                { rate: 0.32, limit: 231250 },
+                { rate: 0.35, limit: 578125 },
+                { rate: 0.37, limit: Infinity }
+            ],
+            married_joint: [
+                { rate: 0.10, limit: 22000 },
+                { rate: 0.12, limit: 89450 },
+                { rate: 0.22, limit: 190750 },
+                { rate: 0.24, limit: 364200 },
+                { rate: 0.32, limit: 462500 },
+                { rate: 0.35, limit: 693750 },
+                { rate: 0.37, limit: Infinity }
+            ],
+            married_separate: [
+                { rate: 0.10, limit: 11000 },
+                { rate: 0.12, limit: 44725 },
+                { rate: 0.22, limit: 95375 },
+                { rate: 0.24, limit: 182100 },
+                { rate: 0.32, limit: 231250 },
+                { rate: 0.35, limit: 346875 },
+                { rate: 0.37, limit: Infinity }
+            ],
+            head: [
+                { rate: 0.10, limit: 15700 },
+                { rate: 0.12, limit: 59850 },
+                { rate: 0.22, limit: 95350 },
+                { rate: 0.24, limit: 182100 },
+                { rate: 0.32, limit: 231250 },
+                { rate: 0.35, limit: 578100 },
+                { rate: 0.37, limit: Infinity }
+            ]
+        };
+
+        // Standard Deductions 2023
+        const standardDeductions2023 = {
+            single: 13850,
+            married_joint: 27700,
+            married_separate: 13850,
+            head: 20800
+        };
+
+        // State Tax Rates (simplified for demonstration)
+        const stateTaxRates = {
+            'AL': 0.05,
+            'AK': 0.00,
+            'AZ': 0.045,
+            'AR': 0.055,
+            'CA': 0.093,
+            // Add more states...
+        };
+
+        // Toggle itemized deduction fields
+        document.querySelector('input[name="deductionType"]').addEventListener('change', function() {
+            const itemizedFields = document.querySelectorAll('.itemized-fields');
+            itemizedFields.forEach(field => {
+                field.style.display = this.value === 'itemized' ? 'block' : 'none';
+            });
+        });
+
+        // Populate states dropdown
+        function populateStates() {
+            const states = {
+                'AL': 'Alabama', 'AK': 'Alaska', 'AZ': 'Arizona', 'AR': 'Arkansas', 'CA': 'California',
+                'CO': 'Colorado', 'CT': 'Connecticut', 'DE': 'Delaware', 'FL': 'Florida', 'GA': 'Georgia',
+                'HI': 'Hawaii', 'ID': 'Idaho', 'IL': 'Illinois', 'IN': 'Indiana', 'IA': 'Iowa',
+                'KS': 'Kansas', 'KY': 'Kentucky', 'LA': 'Louisiana', 'ME': 'Maine', 'MD': 'Maryland',
+                'MA': 'Massachusetts', 'MI': 'Michigan', 'MN': 'Minnesota', 'MS': 'Mississippi', 'MO': 'Missouri',
+                'MT': 'Montana', 'NE': 'Nebraska', 'NV': 'Nevada', 'NH': 'New Hampshire', 'NJ': 'New Jersey',
+                'NM': 'New Mexico', 'NY': 'New York', 'NC': 'North Carolina', 'ND': 'North Dakota', 'OH': 'Ohio',
+                'OK': 'Oklahoma', 'OR': 'Oregon', 'PA': 'Pennsylvania', 'RI': 'Rhode Island', 'SC': 'South Carolina',
+                'SD': 'South Dakota', 'TN': 'Tennessee', 'TX': 'Texas', 'UT': 'Utah', 'VT': 'Vermont',
+                'VA': 'Virginia', 'WA': 'Washington', 'WV': 'West Virginia', 'WI': 'Wisconsin', 'WY': 'Wyoming'
+            };
+
+            const stateSelect = document.getElementById('state');
+            for (const [code, name] of Object.entries(states)) {
+                const option = document.createElement('option');
+                option.value = code;
+                option.textContent = name;
+                stateSelect.appendChild(option);
+            }
+        }
+
+        // Calculate taxes
+        function calculateTaxes(e) {
+            e.preventDefault();
+
+            // Get input values
+            const income = parseFloat(document.getElementById('annualIncome').value);
+            const filingStatus = document.getElementById('filingStatus').value;
+            const state = document.getElementById('state').value;
+            const payFrequency = parseInt(document.getElementById('payFrequency').value);
+            const isItemized = document.getElementById('itemizedDeduction').checked;
+
+            // Get deductions
+            let totalDeductions = 0;
+            if (isItemized) {
+                totalDeductions += parseFloat(document.getElementById('mortgageInterest').value || 0);
+                totalDeductions += parseFloat(document.getElementById('propertyTaxes').value || 0);
+                totalDeductions += parseFloat(document.getElementById('charitableContributions').value || 0);
+                totalDeductions += parseFloat(document.getElementById('medicalExpenses').value || 0);
+            } else {
+                totalDeductions = standardDeductions2023[filingStatus];
+            }
+
+            // Add other deductions
+            const retirement401k = parseFloat(document.getElementById('retirement401k').value || 0);
+            const iraContributions = parseFloat(document.getElementById('iraContributions').value || 0);
+            const hsaContributions = parseFloat(document.getElementById('hsaContributions').value || 0);
+            const studentLoanInterest = parseFloat(document.getElementById('studentLoanInterest').value || 0);
+
+            const totalPreTaxDeductions = retirement401k + iraContributions + hsaContributions;
+            const taxableIncome = Math.max(0, income - totalPreTaxDeductions - totalDeductions);
+
+            // Calculate federal tax
+            const federalTax = calculateFederalTax(taxableIncome, filingStatus);
+            
+            // Calculate state tax (simplified)
+            const stateTax = state ? taxableIncome * (stateTaxRates[state] || 0) : 0;
+
+            // Calculate total tax and take-home pay
+            const totalTax = federalTax + stateTax;
+            const takeHomePay = income - totalTax - totalPreTaxDeductions;
+            const effectiveRate = (totalTax / income) * 100;
+
+            // Update results
+            document.getElementById('takeHomePay').textContent = formatCurrency(takeHomePay);
+            document.getElementById('payPeriodAmount').textContent = 
+                `${formatCurrency(takeHomePay / payFrequency)} per period`;
+            document.getElementById('totalTax').textContent = formatCurrency(totalTax);
+            document.getElementById('effectiveRate').textContent = effectiveRate.toFixed(1) + '%';
+
+            // Update tax brackets visualization
+            updateTaxBrackets(taxableIncome, filingStatus);
+
+            // Update charts
+            updateCharts(income, totalTax, federalTax, stateTax, totalPreTaxDeductions, takeHomePay);
+
+            // Update breakdowns
+            updateBreakdowns(income, totalTax, federalTax, stateTax, totalPreTaxDeductions, takeHomePay, payFrequency);
+
+            // Show results
+            document.getElementById('results').style.display = 'block';
+        }
+
+        // Calculate federal tax using brackets
+        function calculateFederalTax(income, filingStatus) {
+            const brackets = taxBrackets2023[filingStatus];
+            let tax = 0;
+            let remainingIncome = income;
+            let previousLimit = 0;
+
+            for (const bracket of brackets) {
+                const taxableInBracket = Math.min(
+                    Math.max(0, remainingIncome),
+                    bracket.limit - previousLimit
+                );
+                tax += taxableInBracket * bracket.rate;
+                remainingIncome -= taxableInBracket;
+                previousLimit = bracket.limit;
+                if (remainingIncome <= 0) break;
+            }
+
+            return tax;
+        }
+
+        // Update tax brackets visualization
+        function updateTaxBrackets(income, filingStatus) {
+            const brackets = taxBrackets2023[filingStatus];
+            const container = document.getElementById('taxBrackets');
+            container.innerHTML = '';
+
+            let previousLimit = 0;
+            brackets.forEach((bracket, index) => {
+                const div = document.createElement('div');
+                div.className = 'tax-bracket' + (income > previousLimit ? ' active' : '');
+                
+                const rangeText = index === brackets.length - 1 
+                    ? `Over ${formatCurrency(previousLimit)}`
+                    : `${formatCurrency(previousLimit)} to ${formatCurrency(bracket.limit)}`;
+
+                div.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>${(bracket.rate * 100).toFixed(1)}%</strong>
+                            <div class="text-muted small">${rangeText}</div>
+                        </div>
+                        <div class="text-end">
+                            <div class="small">Tax in Bracket:</div>
+                            <strong>${calculateBracketTax(income, previousLimit, bracket)}</strong>
+                        </div>
+                    </div>
+                `;
+                
+                container.appendChild(div);
+                previousLimit = bracket.limit;
+            });
+        }
+
+        // Calculate tax for a specific bracket
+        function calculateBracketTax(income, start, bracket) {
+            if (income <= start) return '$0';
+            const taxableInBracket = Math.min(income - start, bracket.limit - start);
+            return formatCurrency(taxableInBracket * bracket.rate);
+        }
+
+        // Update charts
+        function updateCharts(income, totalTax, federalTax, stateTax, deductions, takeHome) {
+            // Income Breakdown Chart
+            const incomeData = {
+                labels: ['Take-Home Pay', 'Federal Tax', 'State Tax', 'Pre-Tax Deductions'],
+                datasets: [{
+                    data: [takeHome, federalTax, stateTax, deductions],
+                    backgroundColor: ['#28a745', '#dc3545', '#ffc107', '#17a2b8'],
+                    borderWidth: 1
+                }]
+            };
+
+            if (incomeChart) {
+                incomeChart.destroy();
+            }
+
+            incomeChart = new Chart(document.getElementById('incomeChart'), {
+                type: 'doughnut',
+                data: incomeData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+
+            // Tax Distribution Chart
+            const taxData = {
+                labels: ['Federal Tax', 'State Tax'],
+                datasets: [{
+                    data: [federalTax, stateTax],
+                    backgroundColor: ['#dc3545', '#ffc107'],
+                    borderWidth: 1
+                }]
+            };
+
+            if (taxChart) {
+                taxChart.destroy();
+            }
+
+            taxChart = new Chart(document.getElementById('taxChart'), {
+                type: 'pie',
+                data: taxData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update breakdowns
+        function updateBreakdowns(income, totalTax, federalTax, stateTax, deductions, takeHome, payFrequency) {
+            // Annual breakdown
+            const breakdownHtml = `
+                <div class="tax-breakdown-item">
+                    <span>Gross Income:</span>
+                    <span>${formatCurrency(income)}</span>
+                </div>
+                <div class="tax-breakdown-item">
+                    <span>Federal Tax:</span>
+                    <span>${formatCurrency(federalTax)}</span>
+                </div>
+                <div class="tax-breakdown-item">
+                    <span>State Tax:</span>
+                    <span>${formatCurrency(stateTax)}</span>
+                </div>
+                <div class="tax-breakdown-item">
+                    <span>Pre-Tax Deductions:</span>
+                    <span>${formatCurrency(deductions)}</span>
+                </div>
+                <div class="tax-breakdown-item">
+                    <span>Take-Home Pay:</span>
+                    <span>${formatCurrency(takeHome)}</span>
+                </div>
+            `;
+            document.getElementById('breakdown').innerHTML = breakdownHtml;
+
+            // Pay period breakdown
+            const payPeriodHtml = `
+                <div class="tax-breakdown-item">
+                    <span>Gross Pay:</span>
+                    <span>${formatCurrency(income / payFrequency)}</span>
+                </div>
+                <div class="tax-breakdown-item">
+                    <span>Federal Tax:</span>
+                    <span>${formatCurrency(federalTax / payFrequency)}</span>
+                </div>
+                <div class="tax-breakdown-item">
+                    <span>State Tax:</span>
+                    <span>${formatCurrency(stateTax / payFrequency)}</span>
+                </div>
+                <div class="tax-breakdown-item">
+                    <span>Pre-Tax Deductions:</span>
+                    <span>${formatCurrency(deductions / payFrequency)}</span>
+                </div>
+                <div class="tax-breakdown-item">
+                    <span>Take-Home Pay:</span>
+                    <span>${formatCurrency(takeHome / payFrequency)}</span>
+                </div>
+            `;
+            document.getElementById('payPeriodBreakdown').innerHTML = payPeriodHtml;
+        }
+
+        // Format currency
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(value);
+        }
+
+        // Event listeners
+        document.getElementById('taxForm').addEventListener('submit', calculateTaxes);
+        document.getElementById('taxForm').addEventListener('reset', () => {
+            document.getElementById('results').style.display = 'none';
+            if (incomeChart) incomeChart.destroy();
+            if (taxChart) taxChart.destroy();
+            document.querySelectorAll('.itemized-fields').forEach(field => {
+                field.style.display = 'none';
+            });
+            document.getElementById('standardDeduction').checked = true;
+        });
+    </script>
+</body>
+</html> 

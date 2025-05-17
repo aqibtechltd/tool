@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image to PNG Converter - Multi Tools</title>
+    <meta name="description" content="Convert your images to PNG format easily with our free online tool.">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../../../css/style.css">
+    <style>
+        .tool-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+        .drop-zone {
+            border: 2px dashed var(--primary-color);
+            border-radius: 15px;
+            padding: 3rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .drop-zone:hover {
+            background: rgba(67, 97, 238, 0.05);
+        }
+        .drop-zone.dragover {
+            background: rgba(67, 97, 238, 0.1);
+            border-color: var(--accent-color);
+        }
+        .preview-container {
+            max-width: 300px;
+            margin: 2rem auto;
+            display: none;
+        }
+        .preview-container img {
+            max-width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .convert-btn {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 50px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .convert-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
+        }
+        .error-message {
+            background: #ffe5e5;
+            color: #d63031;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            display: none;
+        }
+        .loading-spinner {
+            display: none;
+            margin: 2rem auto;
+            text-align: center;
+        }
+        .loading-spinner i {
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .file-info {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header will be loaded dynamically -->
+    <div id="header-placeholder"></div>
+
+    <main class="container py-5">
+        <div class="row">
+            <div class="col-lg-8 mx-auto text-center">
+                <h1 class="mb-4">Image to PNG Converter</h1>
+                <p class="lead mb-5">Convert your images to PNG format with just a few clicks. Supports JPG, JPEG, GIF, BMP, and more.</p>
+            </div>
+        </div>
+
+        <div class="tool-container">
+            <div class="error-message" id="errorMessage"></div>
+            
+            <div class="drop-zone" id="dropZone">
+                <i class="fas fa-cloud-upload-alt fa-3x mb-3 text-primary"></i>
+                <h3 class="mb-3">Drag & Drop your image here</h3>
+                <p class="text-muted mb-3">or</p>
+                <input type="file" id="fileInput" accept="image/*" class="d-none">
+                <button class="btn btn-primary px-4" onclick="document.getElementById('fileInput').click()">
+                    Choose File
+                </button>
+            </div>
+
+            <div class="loading-spinner" id="loadingSpinner">
+                <i class="fas fa-spinner fa-3x text-primary"></i>
+                <p class="mt-3">Processing your image...</p>
+            </div>
+
+            <div class="file-info" id="fileInfo">
+                <h5>File Information</h5>
+                <p class="mb-1">Name: <span id="fileName">-</span></p>
+                <p class="mb-1">Size: <span id="fileSize">-</span></p>
+                <p class="mb-0">Type: <span id="fileType">-</span></p>
+            </div>
+
+            <div class="preview-container" id="previewContainer">
+                <img id="imagePreview" alt="Preview">
+                <div class="text-center mt-3">
+                    <button class="convert-btn" onclick="convertToPNG()">
+                        <i class="fas fa-magic me-2"></i> Convert to PNG
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer will be loaded dynamically -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Common JavaScript -->
+    <script src="../../../js/tools-common.js"></script>
+    <!-- Custom JavaScript -->
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const previewContainer = document.getElementById('previewContainer');
+        const imagePreview = document.getElementById('imagePreview');
+
+        // Initialize file drop zone
+        toolsCommon.initializeFileDropZone(dropZone, fileInput, handleFiles);
+
+        // Load header and footer
+        document.addEventListener('DOMContentLoaded', function() {
+            toolsCommon.loadHeaderAndFooter(3);
+        });
+
+        async function handleFiles(e) {
+            const file = e.target.files[0];
+            
+            try {
+                await toolsCommon.validateFile(file, {
+                    maxSize: 10 * 1024 * 1024,
+                    allowedTypes: ['image/*']
+                });
+
+                toolsCommon.updateFileInfo(file);
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imagePreview.src = e.target.result;
+                    previewContainer.style.display = 'block';
+                }
+                reader.onerror = function() {
+                    toolsCommon.showError('Error reading file. Please try again.');
+                }
+                reader.readAsDataURL(file);
+            } catch (error) {
+                toolsCommon.showError(error.message);
+            }
+        }
+
+        async function convertToPNG() {
+            try {
+                toolsCommon.showLoading();
+                previewContainer.style.display = 'none';
+                
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const img = new Image();
+                
+                img.onload = function() {
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    ctx.drawImage(img, 0, 0);
+                    
+                    canvas.toBlob(function(blob) {
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = 'converted-image.png';
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                        
+                        toolsCommon.hideLoading();
+                        previewContainer.style.display = 'block';
+                    }, 'image/png');
+                };
+                
+                img.onerror = function() {
+                    toolsCommon.showError('Error processing image. Please try again.');
+                    toolsCommon.hideLoading();
+                    previewContainer.style.display = 'block';
+                };
+                
+                img.src = imagePreview.src;
+            } catch (error) {
+                toolsCommon.showError('An error occurred. Please try again.');
+                toolsCommon.hideLoading();
+                previewContainer.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html> 

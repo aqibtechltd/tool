@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Allow: /tools/
+Allow: /about.html
+Allow: /contact.html
+
+# Sitemaps
+Sitemap: https://your-domain.com/sitemap.xml 

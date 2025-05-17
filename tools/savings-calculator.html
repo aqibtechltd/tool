@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Savings Calculator - Multi-Tools</title>
+    <meta name="description" content="Free online savings calculator. Plan your savings goals with regular deposits and estimated interest rates.">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Chart.js -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .result-card {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .result-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #0d6efd;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 2rem;
+        }
+
+        .breakdown-table {
+            font-size: 0.9rem;
+        }
+
+        .breakdown-table th {
+            background-color: #f8f9fa;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        .table-container {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 2rem;
+        }
+
+        .form-label {
+            font-weight: 500;
+        }
+
+        .input-group-text {
+            background-color: #f8f9fa;
+        }
+
+        .tooltip-icon {
+            color: #6c757d;
+            cursor: help;
+            margin-left: 0.5rem;
+        }
+
+        .goal-progress {
+            height: 2rem;
+            margin: 1rem 0;
+        }
+
+        .goal-label {
+            position: absolute;
+            width: 100%;
+            text-align: center;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            font-weight: 500;
+            line-height: 2rem;
+        }
+
+        .savings-milestone {
+            position: relative;
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            background-color: #f8f9fa;
+        }
+
+        .milestone-icon {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 2rem;
+            color: #0d6efd;
+            opacity: 0.2;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header will be loaded dynamically -->
+    <div id="header-placeholder"></div>
+
+    <!-- Main Content -->
+    <main class="container py-5">
+        <div class="row">
+            <div class="col-lg-8">
+                <h1 class="mb-4">Savings Calculator</h1>
+                
+                <!-- Calculator Section -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <form id="savingsForm" class="row g-3">
+                            <!-- Initial Deposit -->
+                            <div class="col-md-6">
+                                <label class="form-label">
+                                    Initial Deposit
+                                    <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Starting amount in your savings"></i>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" class="form-control" id="initialDeposit" value="1000" min="0" required>
+                                </div>
+                            </div>
+
+                            <!-- Regular Deposit -->
+                            <div class="col-md-6">
+                                <label class="form-label">
+                                    Regular Deposit
+                                    <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Amount to save regularly"></i>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" class="form-control" id="regularDeposit" value="500" min="0" required>
+                                    <select class="form-select" id="depositFrequency" style="max-width: 120px;">
+                                        <option value="12">Monthly</option>
+                                        <option value="26">Bi-weekly</option>
+                                        <option value="52">Weekly</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Interest Rate -->
+                            <div class="col-md-6">
+                                <label class="form-label">
+                                    Annual Interest Rate
+                                    <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Expected annual return rate"></i>
+                                </label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="interestRate" value="3" step="0.1" min="0" max="100" required>
+                                    <span class="input-group-text">%</span>
+                                </div>
+                            </div>
+
+                            <!-- Time Period -->
+                            <div class="col-md-6">
+                                <label class="form-label">
+                                    Time Period
+                                    <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="How long you plan to save"></i>
+                                </label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="years" value="5" min="1" required>
+                                    <span class="input-group-text">Years</span>
+                                </div>
+                            </div>
+
+                            <!-- Savings Goal -->
+                            <div class="col-md-6">
+                                <label class="form-label">
+                                    Savings Goal (Optional)
+                                    <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Target amount you want to save"></i>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" class="form-control" id="savingsGoal" value="50000" min="0">
+                                </div>
+                            </div>
+
+                            <!-- Calculate Button -->
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-calculator"></i> Calculate
+                                </button>
+                                <button type="reset" class="btn btn-secondary ms-2">
+                                    <i class="fas fa-redo"></i> Reset
+                                </button>
+                            </div>
+                        </form>
+
+                        <!-- Results Section -->
+                        <div id="results" class="mt-4" style="display: none;">
+                            <h4 class="mb-4">Savings Summary</h4>
+                            
+                            <!-- Goal Progress -->
+                            <div id="goalSection" style="display: none;">
+                                <h5>Progress Towards Goal</h5>
+                                <div class="position-relative">
+                                    <div class="progress goal-progress">
+                                        <div class="progress-bar" id="goalProgress" role="progressbar" style="width: 0%"></div>
+                                    </div>
+                                    <div class="goal-label" id="goalLabel">0%</div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <!-- Final Balance -->
+                                <div class="col-md-4">
+                                    <div class="result-card text-center">
+                                        <h6>Final Balance</h6>
+                                        <div class="result-value" id="finalBalance">$0</div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Total Deposits -->
+                                <div class="col-md-4">
+                                    <div class="result-card text-center">
+                                        <h6>Total Deposits</h6>
+                                        <div class="result-value" id="totalDeposits">$0</div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Total Interest -->
+                                <div class="col-md-4">
+                                    <div class="result-card text-center">
+                                        <h6>Total Interest</h6>
+                                        <div class="result-value" id="totalInterest">$0</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Charts -->
+                            <div class="row mt-4">
+                                <div class="col-md-6">
+                                    <h5>Balance Composition</h5>
+                                    <div class="chart-container">
+                                        <canvas id="pieChart"></canvas>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h5>Growth Over Time</h5>
+                                    <div class="chart-container">
+                                        <canvas id="lineChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Milestones -->
+                            <div class="mt-4">
+                                <h5>Savings Milestones</h5>
+                                <div id="milestones"></div>
+                            </div>
+
+                            <!-- Yearly Breakdown -->
+                            <div class="table-container">
+                                <h5>Yearly Breakdown</h5>
+                                <table class="table table-striped table-hover breakdown-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Year</th>
+                                            <th>Starting Balance</th>
+                                            <th>Deposits</th>
+                                            <th>Interest Earned</th>
+                                            <th>Ending Balance</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="breakdownBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Features Section -->
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Features</h5>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success me-2"></i>Calculate future savings with regular deposits</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Track progress towards savings goals</li>
+                            <li><i class="fas fa-check text-success me-2"></i>View detailed yearly breakdown</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Interactive growth visualization</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Savings milestones tracking</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <!-- Ad Space -->
+                <div class="ad-space sidebar-ad mb-4">
+                    <small>Advertisement</small>
+                </div>
+
+                <!-- Tool Info -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">About This Tool</h5>
+                        <p class="card-text">
+                            Plan your savings journey with this comprehensive calculator. Set savings goals, 
+                            track your progress, and see how your money can grow over time with regular deposits 
+                            and compound interest.
+                        </p>
+                        <div class="author-credit">
+                            App Built by Aqib Chaudhary
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer will be loaded dynamically -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+    <!-- Custom JavaScript -->
+    <script src="../js/main.js"></script>
+    <script>
+        // Initialize tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+
+        // Charts
+        let pieChart = null;
+        let lineChart = null;
+
+        // Calculate savings
+        function calculateSavings(e) {
+            e.preventDefault();
+
+            // Get input values
+            const initialDeposit = parseFloat(document.getElementById('initialDeposit').value);
+            const regularDeposit = parseFloat(document.getElementById('regularDeposit').value);
+            const depositFrequency = parseInt(document.getElementById('depositFrequency').value);
+            const rate = parseFloat(document.getElementById('interestRate').value) / 100;
+            const years = parseInt(document.getElementById('years').value);
+            const savingsGoal = parseFloat(document.getElementById('savingsGoal').value) || 0;
+
+            // Calculate monthly rate and number of deposits
+            const periodicRate = rate / depositFrequency;
+            const totalPeriods = years * depositFrequency;
+
+            // Initialize variables for tracking
+            let balance = initialDeposit;
+            let totalDeposits = initialDeposit;
+            const yearlyData = [];
+            const balanceData = [initialDeposit];
+            const labels = ['Start'];
+            const milestones = [];
+
+            // Calculate yearly totals
+            for (let year = 1; year <= years; year++) {
+                const startBalance = balance;
+                const yearlyDeposit = regularDeposit * depositFrequency;
+                totalDeposits += yearlyDeposit;
+
+                // Calculate compound interest for the year
+                for (let period = 1; period <= depositFrequency; period++) {
+                    balance = balance * (1 + periodicRate) + regularDeposit;
+                }
+
+                // Store yearly data
+                yearlyData.push({
+                    year: year,
+                    startBalance: startBalance,
+                    deposits: yearlyDeposit,
+                    interest: balance - startBalance - yearlyDeposit,
+                    endBalance: balance
+                });
+
+                balanceData.push(balance);
+                labels.push(`Year ${year}`);
+
+                // Check for milestones
+                if (balance >= 10000 && startBalance < 10000) {
+                    milestones.push({
+                        amount: 10000,
+                        year: year,
+                        icon: 'trophy'
+                    });
+                }
+                if (balance >= 25000 && startBalance < 25000) {
+                    milestones.push({
+                        amount: 25000,
+                        year: year,
+                        icon: 'star'
+                    });
+                }
+                if (balance >= 50000 && startBalance < 50000) {
+                    milestones.push({
+                        amount: 50000,
+                        year: year,
+                        icon: 'crown'
+                    });
+                }
+                if (balance >= 100000 && startBalance < 100000) {
+                    milestones.push({
+                        amount: 100000,
+                        year: year,
+                        icon: 'gem'
+                    });
+                }
+            }
+
+            // Calculate totals
+            const totalInterest = balance - totalDeposits;
+
+            // Update results
+            document.getElementById('finalBalance').textContent = formatCurrency(balance);
+            document.getElementById('totalDeposits').textContent = formatCurrency(totalDeposits);
+            document.getElementById('totalInterest').textContent = formatCurrency(totalInterest);
+
+            // Update goal progress if goal is set
+            if (savingsGoal > 0) {
+                const progress = Math.min((balance / savingsGoal) * 100, 100);
+                document.getElementById('goalProgress').style.width = progress + '%';
+                document.getElementById('goalLabel').textContent = 
+                    progress >= 100 ? 'Goal Achieved!' : `${progress.toFixed(1)}% of Goal`;
+                document.getElementById('goalSection').style.display = 'block';
+            } else {
+                document.getElementById('goalSection').style.display = 'none';
+            }
+
+            // Show results section
+            document.getElementById('results').style.display = 'block';
+
+            // Update charts
+            updateCharts(totalDeposits, totalInterest, balanceData, labels);
+            
+            // Generate breakdown table
+            generateBreakdown(yearlyData);
+
+            // Update milestones
+            generateMilestones(milestones);
+        }
+
+        // Format currency
+        function formatCurrency(value) {
+            return '$' + value.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+        }
+
+        // Update charts
+        function updateCharts(deposits, interest, balanceData, labels) {
+            // Pie Chart
+            const pieData = {
+                labels: ['Total Deposits', 'Interest Earned'],
+                datasets: [{
+                    data: [deposits, interest],
+                    backgroundColor: ['#0d6efd', '#198754'],
+                    borderWidth: 1
+                }]
+            };
+
+            if (pieChart) {
+                pieChart.destroy();
+            }
+
+            pieChart = new Chart(document.getElementById('pieChart'), {
+                type: 'pie',
+                data: pieData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+
+            // Line Chart
+            const lineData = {
+                labels: labels,
+                datasets: [{
+                    label: 'Balance',
+                    data: balanceData,
+                    borderColor: '#0d6efd',
+                    fill: false,
+                    tension: 0.1
+                }]
+            };
+
+            if (lineChart) {
+                lineChart.destroy();
+            }
+
+            lineChart = new Chart(document.getElementById('lineChart'), {
+                type: 'line',
+                data: lineData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: value => '$' + value.toFixed(0).replace(/\d(?=(\d{3})+$)/g, '$&,')
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Generate breakdown table
+        function generateBreakdown(yearlyData) {
+            const tbody = document.getElementById('breakdownBody');
+            tbody.innerHTML = '';
+
+            yearlyData.forEach(data => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${data.year}</td>
+                    <td>${formatCurrency(data.startBalance)}</td>
+                    <td>${formatCurrency(data.deposits)}</td>
+                    <td>${formatCurrency(data.interest)}</td>
+                    <td>${formatCurrency(data.endBalance)}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // Generate milestones
+        function generateMilestones(milestones) {
+            const container = document.getElementById('milestones');
+            container.innerHTML = '';
+
+            milestones.forEach(milestone => {
+                const div = document.createElement('div');
+                div.className = 'savings-milestone';
+                div.innerHTML = `
+                    <h6 class="mb-0">Reached ${formatCurrency(milestone.amount)}</h6>
+                    <small class="text-muted">Year ${milestone.year}</small>
+                    <i class="fas fa-${milestone.icon} milestone-icon"></i>
+                `;
+                container.appendChild(div);
+            });
+
+            if (milestones.length === 0) {
+                container.innerHTML = '<p class="text-muted">Keep saving to reach your first milestone!</p>';
+            }
+        }
+
+        // Event listeners
+        document.getElementById('savingsForm').addEventListener('submit', calculateSavings);
+        document.getElementById('savingsForm').addEventListener('reset', () => {
+            document.getElementById('results').style.display = 'none';
+            if (pieChart) pieChart.destroy();
+            if (lineChart) lineChart.destroy();
+        });
+    </script>
+</body>
+</html> 

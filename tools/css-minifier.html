@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS Minifier - Multi-Tools</title>
+    <meta name="description" content="Free online CSS minifier tool. Minify and optimize your CSS code by removing unnecessary whitespace, comments, and more.">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .css-editor {
+            font-family: monospace;
+            min-height: 300px;
+            resize: vertical;
+            tab-size: 4;
+        }
+        .output-box {
+            background: #f8f9fa;
+            border-radius: 5px;
+            padding: 1rem;
+            margin-top: 1rem;
+            position: relative;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .copy-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+        }
+        .stats-box {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+        .stats-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #eee;
+        }
+        .stats-item:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+        .toolbar {
+            margin-bottom: 1rem;
+        }
+        .toolbar .btn {
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header will be loaded dynamically -->
+    <div id="header-placeholder"></div>
+
+    <!-- Main Content -->
+    <main class="container py-5">
+        <div class="row">
+            <div class="col-lg-8">
+                <h1 class="mb-4">CSS Minifier</h1>
+                
+                <!-- Minifier Section -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="toolbar">
+                            <button class="btn btn-primary" onclick="minifyCSS()">
+                                <i class="fas fa-compress-alt"></i> Minify CSS
+                            </button>
+                            <button class="btn btn-secondary" onclick="beautifyCSS()">
+                                <i class="fas fa-expand-alt"></i> Beautify
+                            </button>
+                            <button class="btn btn-danger" onclick="clearCSS()">
+                                <i class="fas fa-trash"></i> Clear
+                            </button>
+                            <button class="btn btn-success" onclick="loadSampleCSS()">
+                                <i class="fas fa-file-code"></i> Load Sample
+                            </button>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="cssInput" class="form-label">Input CSS:</label>
+                            <textarea id="cssInput" class="form-control css-editor mb-3" 
+                                placeholder="Paste your CSS code here..."></textarea>
+                        </div>
+
+                        <div class="minification-options mb-3">
+                            <h6>Minification Options:</h6>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="removeComments" checked>
+                                <label class="form-check-label" for="removeComments">
+                                    Remove comments
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="removeWhitespace" checked>
+                                <label class="form-check-label" for="removeWhitespace">
+                                    Remove unnecessary whitespace
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="combineMediaQueries">
+                                <label class="form-check-label" for="combineMediaQueries">
+                                    Combine media queries
+                                </label>
+                            </div>
+                        </div>
+
+                        <div id="outputSection" style="display: none;">
+                            <h6>Minified CSS:</h6>
+                            <div class="output-box">
+                                <button class="btn btn-sm btn-outline-primary copy-btn" onclick="copyCSS()">
+                                    <i class="fas fa-copy"></i> Copy
+                                </button>
+                                <pre><code id="cssOutput"></code></pre>
+                            </div>
+
+                            <div class="stats-box mt-3">
+                                <h6>Statistics:</h6>
+                                <div class="stats-item">
+                                    <span>Original Size:</span>
+                                    <span id="originalSize">0 KB</span>
+                                </div>
+                                <div class="stats-item">
+                                    <span>Minified Size:</span>
+                                    <span id="minifiedSize">0 KB</span>
+                                </div>
+                                <div class="stats-item">
+                                    <span>Compression Ratio:</span>
+                                    <span id="compressionRatio">0%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Features Section -->
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Features</h5>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success me-2"></i>Minify CSS code instantly</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Remove comments and whitespace</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Combine media queries</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Beautify CSS code</li>
+                            <li><i class="fas fa-check text-success me-2"></i>View compression statistics</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <!-- Ad Space -->
+                <div class="ad-space sidebar-ad mb-4">
+                    <small>Advertisement</small>
+                </div>
+
+                <!-- Tool Info -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">About This Tool</h5>
+                        <p class="card-text">
+                            Optimize your CSS code by removing unnecessary characters, whitespace, and comments. 
+                            This tool helps reduce file size and improve website loading speed. 
+                            Perfect for web developers looking to optimize their stylesheets.
+                        </p>
+                        <div class="author-credit">
+                            App Built By Aqib Chaudhary
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer will be loaded dynamically -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JavaScript -->
+    <script src="../js/main.js"></script>
+    <script>
+        // Sample CSS for demonstration
+        const sampleCSS = `/* Header Styles */
+.header {
+    background-color: #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 1000;
+}
+
+/* Navigation Styles */
+.nav-menu {
+    display: flex;
+    justify-content: space-between;
+    padding: 1rem;
+}
+
+.nav-item {
+    margin: 0 1rem;
+    color: #333333;
+    text-decoration: none;
+}
+
+/* Media Queries */
+@media (max-width: 768px) {
+    .nav-menu {
+        flex-direction: column;
+        padding: 0.5rem;
+    }
+    
+    .nav-item {
+        margin: 0.5rem 0;
+    }
+}
+
+/* Button Styles */
+.button {
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+}
+
+.button-primary {
+    background-color: #007bff;
+    color: white;
+}
+
+.button-secondary {
+    background-color: #6c757d;
+    color: white;
+}`;
+
+        function loadSampleCSS() {
+            document.getElementById('cssInput').value = sampleCSS;
+        }
+
+        function minifyCSS() {
+            const input = document.getElementById('cssInput').value;
+            const removeComments = document.getElementById('removeComments').checked;
+            const removeWhitespace = document.getElementById('removeWhitespace').checked;
+            const combineMediaQueries = document.getElementById('combineMediaQueries').checked;
+
+            let minified = input;
+
+            if (removeComments) {
+                minified = minified.replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, ''); // Remove comments
+            }
+
+            if (removeWhitespace) {
+                minified = minified
+                    .replace(/\s+/g, ' ') // Replace multiple spaces with single space
+                    .replace(/\s*{\s*/g, '{') // Remove spaces around {
+                    .replace(/\s*}\s*/g, '}') // Remove spaces around }
+                    .replace(/\s*:\s*/g, ':') // Remove spaces around :
+                    .replace(/\s*;\s*/g, ';') // Remove spaces around ;
+                    .replace(/\s*,\s*/g, ',') // Remove spaces around ,
+                    .trim(); // Remove leading/trailing whitespace
+            }
+
+            // Update output and statistics
+            const outputSection = document.getElementById('outputSection');
+            const cssOutput = document.getElementById('cssOutput');
+            const originalSize = document.getElementById('originalSize');
+            const minifiedSize = document.getElementById('minifiedSize');
+            const compressionRatio = document.getElementById('compressionRatio');
+
+            cssOutput.textContent = minified;
+            outputSection.style.display = 'block';
+
+            // Calculate statistics
+            const originalBytes = input.length;
+            const minifiedBytes = minified.length;
+            const ratio = ((originalBytes - minifiedBytes) / originalBytes * 100).toFixed(2);
+
+            originalSize.textContent = `${originalBytes} bytes`;
+            minifiedSize.textContent = `${minifiedBytes} bytes`;
+            compressionRatio.textContent = `${ratio}%`;
+        }
+
+        function beautifyCSS() {
+            const input = document.getElementById('cssInput').value;
+            let beautified = input
+                .replace(/\s*{\s*/g, ' {\n    ') // Add newline and indent after {
+                .replace(/\s*}\s*/g, '\n}\n') // Add newline before and after }
+                .replace(/;\s*/g, ';\n    ') // Add newline and indent after ;
+                .replace(/,\s*/g, ', ') // Add space after ,
+                .replace(/\s*{\s+/g, ' {\n    ') // Clean up spaces before {
+                .replace(/\n\s*\n/g, '\n') // Remove empty lines
+                .trim(); // Remove leading/trailing whitespace
+
+            document.getElementById('cssInput').value = beautified;
+        }
+
+        function clearCSS() {
+            document.getElementById('cssInput').value = '';
+            document.getElementById('outputSection').style.display = 'none';
+        }
+
+        function copyCSS() {
+            const cssOutput = document.getElementById('cssOutput');
+            const textArea = document.createElement('textarea');
+            textArea.value = cssOutput.textContent;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+
+            // Show copied feedback
+            const copyBtn = document.querySelector('.copy-btn');
+            const originalText = copyBtn.innerHTML;
+            copyBtn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+            setTimeout(() => {
+                copyBtn.innerHTML = originalText;
+            }, 2000);
+        }
+
+        // Load sample CSS on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSampleCSS();
+        });
+    </script>
+</body>
+</html> 

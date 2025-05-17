@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON Formatter - Multi-Tools</title>
+    <meta name="description" content="Free online JSON formatter and validator. Format, validate, and beautify your JSON with syntax highlighting.">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Prism.js CSS for syntax highlighting -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .editor-container {
+            position: relative;
+            height: 500px;
+            margin-bottom: 1rem;
+        }
+
+        .editor {
+            width: 100%;
+            height: 100%;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            padding: 1rem;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            resize: none;
+            tab-size: 2;
+        }
+
+        .output-container {
+            position: relative;
+            margin-top: 1rem;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            background: #2d2d2d;
+        }
+
+        .toolbar {
+            padding: 0.5rem;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .validation-message {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 5px;
+        }
+
+        .validation-message.valid {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .validation-message.invalid {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .stats {
+            font-size: 0.875rem;
+            color: #6c757d;
+            margin-top: 0.5rem;
+        }
+
+        .line-numbers {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 40px;
+            background: #f8f9fa;
+            border-right: 1px solid #dee2e6;
+            font-family: monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            padding: 1rem 0.5rem;
+            text-align: right;
+            color: #6c757d;
+            user-select: none;
+        }
+
+        .editor-content {
+            margin-left: 40px;
+        }
+
+        pre {
+            margin: 0;
+            padding: 1rem !important;
+            max-height: 500px;
+            overflow: auto;
+        }
+
+        code {
+            font-family: 'Courier New', Courier, monospace !important;
+            font-size: 14px !important;
+            line-height: 1.5 !important;
+        }
+
+        .sample-json {
+            font-size: 0.875rem;
+            color: #0d6efd;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .sample-json:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header will be loaded dynamically -->
+    <div id="header-placeholder"></div>
+
+    <!-- Main Content -->
+    <main class="container py-5">
+        <div class="row">
+            <div class="col-lg-8">
+                <h1 class="mb-4">JSON Formatter</h1>
+                
+                <!-- Formatter Section -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <!-- Input Section -->
+                        <div class="mb-3">
+                            <label class="form-label">Input JSON:</label>
+                            <div class="editor-container">
+                                <div class="line-numbers" id="lineNumbers"></div>
+                                <div class="editor-content">
+                                    <textarea id="jsonInput" class="editor" spellcheck="false" placeholder="Paste your JSON here..."></textarea>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                <div>
+                                    <a class="sample-json me-3" onclick="loadSampleJson()">Load Sample JSON</a>
+                                    <a class="sample-json" onclick="clearJson()">Clear</a>
+                                </div>
+                                <div class="stats">
+                                    Characters: <span id="charCount">0</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Toolbar -->
+                        <div class="toolbar">
+                            <button class="btn btn-primary btn-sm" onclick="formatJson()">
+                                <i class="fas fa-indent"></i> Format
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="minifyJson()">
+                                <i class="fas fa-compress-alt"></i> Minify
+                            </button>
+                            <button class="btn btn-success btn-sm" onclick="validateJson()">
+                                <i class="fas fa-check"></i> Validate
+                            </button>
+                            <button class="btn btn-info btn-sm text-white" onclick="copyJson()">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                            <select class="form-select form-select-sm" style="width: auto;" id="indentSize">
+                                <option value="2">2 spaces</option>
+                                <option value="4">4 spaces</option>
+                                <option value="tab">Tab</option>
+                            </select>
+                        </div>
+
+                        <!-- Validation Message -->
+                        <div id="validationMessage"></div>
+
+                        <!-- Output Section -->
+                        <div class="output-container">
+                            <pre><code class="language-json" id="jsonOutput"></code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Features Section -->
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Features</h5>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success me-2"></i>Format and beautify JSON</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Syntax highlighting</li>
+                            <li><i class="fas fa-check text-success me-2"></i>JSON validation</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Minification option</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Customizable indentation</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <!-- Ad Space -->
+                <div class="ad-space sidebar-ad mb-4">
+                    <small>Advertisement</small>
+                </div>
+
+                <!-- Tool Info -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">About This Tool</h5>
+                        <p class="card-text">
+                            Format, validate, and beautify your JSON data with our easy-to-use formatter. 
+                            Features syntax highlighting, error detection, and customizable indentation. 
+                            Perfect for developers working with JSON data.
+                        </p>
+                        <div class="author-credit">
+                            App Built by Aqib Chaudhary
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer will be loaded dynamically -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Prism.js for syntax highlighting -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.js"></script>
+    <!-- Custom JavaScript -->
+    <script src="../js/main.js"></script>
+    <script>
+        // DOM Elements
+        const jsonInput = document.getElementById('jsonInput');
+        const jsonOutput = document.getElementById('jsonOutput');
+        const validationMessage = document.getElementById('validationMessage');
+        const charCount = document.getElementById('charCount');
+        const indentSize = document.getElementById('indentSize');
+        const lineNumbers = document.getElementById('lineNumbers');
+
+        // Sample JSON for demonstration
+        const sampleJson = {
+            "name": "John Doe",
+            "age": 30,
+            "isStudent": false,
+            "hobbies": ["reading", "music", "sports"],
+            "address": {
+                "street": "123 Main St",
+                "city": "New York",
+                "country": "USA"
+            },
+            "contact": {
+                "email": "john@example.com",
+                "phone": "+1-234-567-8900"
+            }
+        };
+
+        // Update line numbers
+        function updateLineNumbers() {
+            const lines = jsonInput.value.split('\n');
+            lineNumbers.innerHTML = Array.from({ length: lines.length }, (_, i) => i + 1).join('\n');
+        }
+
+        // Load sample JSON
+        function loadSampleJson() {
+            jsonInput.value = JSON.stringify(sampleJson, null, 2);
+            updateStats();
+            updateLineNumbers();
+        }
+
+        // Clear JSON
+        function clearJson() {
+            jsonInput.value = '';
+            jsonOutput.textContent = '';
+            validationMessage.innerHTML = '';
+            updateStats();
+            updateLineNumbers();
+            Prism.highlightElement(jsonOutput);
+        }
+
+        // Format JSON
+        function formatJson() {
+            try {
+                const json = JSON.parse(jsonInput.value);
+                const indent = indentSize.value === 'tab' ? '\t' : Number(indentSize.value);
+                const formatted = JSON.stringify(json, null, indent);
+                jsonInput.value = formatted;
+                jsonOutput.textContent = formatted;
+                showValidationMessage(true, 'JSON is valid and has been formatted.');
+                Prism.highlightElement(jsonOutput);
+                updateLineNumbers();
+            } catch (e) {
+                showValidationMessage(false, `Invalid JSON: ${e.message}`);
+            }
+        }
+
+        // Minify JSON
+        function minifyJson() {
+            try {
+                const json = JSON.parse(jsonInput.value);
+                const minified = JSON.stringify(json);
+                jsonInput.value = minified;
+                jsonOutput.textContent = minified;
+                showValidationMessage(true, 'JSON has been minified.');
+                Prism.highlightElement(jsonOutput);
+                updateLineNumbers();
+            } catch (e) {
+                showValidationMessage(false, `Invalid JSON: ${e.message}`);
+            }
+        }
+
+        // Validate JSON
+        function validateJson() {
+            try {
+                JSON.parse(jsonInput.value);
+                showValidationMessage(true, 'JSON is valid.');
+            } catch (e) {
+                showValidationMessage(false, `Invalid JSON: ${e.message}`);
+            }
+        }
+
+        // Copy JSON
+        function copyJson() {
+            const textToCopy = jsonOutput.textContent || jsonInput.value;
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                showValidationMessage(true, 'JSON copied to clipboard.');
+            });
+        }
+
+        // Show validation message
+        function showValidationMessage(isValid, message) {
+            validationMessage.className = `validation-message ${isValid ? 'valid' : 'invalid'}`;
+            validationMessage.innerHTML = `<i class="fas fa-${isValid ? 'check' : 'times'}"></i> ${message}`;
+        }
+
+        // Update statistics
+        function updateStats() {
+            charCount.textContent = jsonInput.value.length;
+        }
+
+        // Event Listeners
+        jsonInput.addEventListener('input', () => {
+            updateStats();
+            updateLineNumbers();
+        });
+
+        jsonInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                const start = this.selectionStart;
+                const end = this.selectionEnd;
+                const spaces = '  ';
+                this.value = this.value.substring(0, start) + spaces + this.value.substring(end);
+                this.selectionStart = this.selectionEnd = start + spaces.length;
+            }
+        });
+
+        // Initialize
+        updateLineNumbers();
+    </script>
+</body>
+</html> 

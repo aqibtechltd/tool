@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Counter - Multi-Tools</title>
+    <meta name="description" content="Free online word counter tool. Count words, characters, sentences, and paragraphs. Get detailed text statistics instantly.">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .text-editor {
+            min-height: 300px;
+            resize: vertical;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+        .stats-box {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .stats-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #eee;
+        }
+        .stats-item:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+        .stats-value {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        .reading-time {
+            background: #e9ecef;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            margin-top: 1rem;
+            text-align: center;
+        }
+        .keyword-stats {
+            margin-top: 1rem;
+        }
+        .keyword-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem;
+            background: #f8f9fa;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+        }
+        .toolbar {
+            margin-bottom: 1rem;
+        }
+        .toolbar .btn {
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header will be loaded dynamically -->
+    <div id="header-placeholder"></div>
+
+    <!-- Main Content -->
+    <main class="container py-5">
+        <div class="row">
+            <div class="col-lg-8">
+                <h1 class="mb-4">Word Counter</h1>
+                
+                <!-- Counter Section -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="toolbar">
+                            <button class="btn btn-primary" onclick="analyzeText()">
+                                <i class="fas fa-calculator"></i> Analyze Text
+                            </button>
+                            <button class="btn btn-danger" onclick="clearText()">
+                                <i class="fas fa-trash"></i> Clear
+                            </button>
+                            <button class="btn btn-success" onclick="loadSampleText()">
+                                <i class="fas fa-file-alt"></i> Load Sample
+                            </button>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="textInput" class="form-label">Enter or paste your text:</label>
+                            <textarea id="textInput" class="form-control text-editor" 
+                                placeholder="Type or paste your text here..." oninput="analyzeText()"></textarea>
+                        </div>
+
+                        <!-- Basic Statistics -->
+                        <div class="stats-box">
+                            <h6>Basic Statistics:</h6>
+                            <div class="stats-item">
+                                <span>Words:</span>
+                                <span id="wordCount" class="stats-value">0</span>
+                            </div>
+                            <div class="stats-item">
+                                <span>Characters (with spaces):</span>
+                                <span id="charCount" class="stats-value">0</span>
+                            </div>
+                            <div class="stats-item">
+                                <span>Characters (without spaces):</span>
+                                <span id="charNoSpaceCount" class="stats-value">0</span>
+                            </div>
+                            <div class="stats-item">
+                                <span>Sentences:</span>
+                                <span id="sentenceCount" class="stats-value">0</span>
+                            </div>
+                            <div class="stats-item">
+                                <span>Paragraphs:</span>
+                                <span id="paragraphCount" class="stats-value">0</span>
+                            </div>
+                        </div>
+
+                        <!-- Reading Time -->
+                        <div class="reading-time">
+                            <i class="fas fa-book-reader me-2"></i>
+                            Estimated Reading Time: <span id="readingTime">0 minute</span>
+                        </div>
+
+                        <!-- Advanced Statistics -->
+                        <div class="keyword-stats">
+                            <h6>Top Keywords:</h6>
+                            <div id="keywordList"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Features Section -->
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Features</h5>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success me-2"></i>Real-time word and character counting</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Sentence and paragraph analysis</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Reading time estimation</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Keyword frequency analysis</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Instant text statistics</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <!-- Ad Space -->
+                <div class="ad-space sidebar-ad mb-4">
+                    <small>Advertisement</small>
+                </div>
+
+                <!-- Tool Info -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">About This Tool</h5>
+                        <p class="card-text">
+                            Get instant word count and detailed text statistics. Perfect for writers, 
+                            students, and content creators. Analyze your text for word count, character count, 
+                            reading time, and keyword frequency.
+                        </p>
+                        <div class="author-credit">
+                            App Built By Aqib Chaudhary
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer will be loaded dynamically -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JavaScript -->
+    <script src="../js/main.js"></script>
+    <script>
+        // Sample text for demonstration
+        const sampleText = `The quick brown fox jumps over the lazy dog. This pangram contains every letter of the English alphabet at least once. Pangrams are sentences that contain every letter of the alphabet. They are commonly used to display font samples and test keyboards.
+
+The first paragraph demonstrates a simple pangram. Here's another example: Pack my box with five dozen liquor jugs. This shorter pangram is often used when space is limited.
+
+In typography and design, pangrams serve an important purpose. They help designers evaluate how different letters look together in various fonts and styles. The most famous pangram is probably "The quick brown fox jumps over the lazy dog."`;
+
+        function loadSampleText() {
+            document.getElementById('textInput').value = sampleText;
+            analyzeText();
+        }
+
+        function clearText() {
+            document.getElementById('textInput').value = '';
+            analyzeText();
+        }
+
+        function analyzeText() {
+            const text = document.getElementById('textInput').value;
+
+            // Basic counts
+            const words = text.trim().split(/\s+/).filter(word => word.length > 0);
+            const chars = text.length;
+            const charsNoSpace = text.replace(/\s/g, '').length;
+            const sentences = text.split(/[.!?]+/).filter(sentence => sentence.trim().length > 0);
+            const paragraphs = text.split('\n\n').filter(para => para.trim().length > 0);
+
+            // Update basic statistics
+            document.getElementById('wordCount').textContent = words.length;
+            document.getElementById('charCount').textContent = chars;
+            document.getElementById('charNoSpaceCount').textContent = charsNoSpace;
+            document.getElementById('sentenceCount').textContent = sentences.length;
+            document.getElementById('paragraphCount').textContent = paragraphs.length;
+
+            // Calculate reading time (average reading speed: 200 words per minute)
+            const readingTimeMinutes = Math.ceil(words.length / 200);
+            document.getElementById('readingTime').textContent = 
+                `${readingTimeMinutes} minute${readingTimeMinutes !== 1 ? 's' : ''}`;
+
+            // Analyze keywords
+            const keywords = {};
+            const stopWords = new Set(['the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'a', 'an']);
+            
+            words.forEach(word => {
+                word = word.toLowerCase().replace(/[.,!?]/g, '');
+                if (word.length > 2 && !stopWords.has(word)) {
+                    keywords[word] = (keywords[word] || 0) + 1;
+                }
+            });
+
+            // Sort keywords by frequency
+            const sortedKeywords = Object.entries(keywords)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5);
+
+            // Update keyword list
+            const keywordList = document.getElementById('keywordList');
+            keywordList.innerHTML = sortedKeywords
+                .map(([word, count]) => `
+                    <div class="keyword-item">
+                        <span>${word}</span>
+                        <span class="badge bg-primary">${count}</span>
+                    </div>
+                `).join('');
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSampleText();
+        });
+    </script>
+</body>
+</html> 

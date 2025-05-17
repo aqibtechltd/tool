@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image to JPG Converter - Multi-Tools</title>
+    <meta name="description" content="Free online image to JPG converter. Convert your images to JPG format with quality adjustment, preview functionality and drag-and-drop support.">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .drop-zone {
+            border: 2px dashed #ccc;
+            border-radius: 10px;
+            padding: 2rem;
+            text-align: center;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .drop-zone.dragover {
+            background: #e9ecef;
+            border-color: var(--primary-color);
+        }
+
+        .preview-container {
+            max-width: 100%;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .preview-image {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .file-info {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+
+        .conversion-options {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+        }
+
+        #downloadBtn {
+            display: none;
+        }
+
+        .loading {
+            display: none;
+            margin: 1rem 0;
+        }
+
+        .loading .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
+
+        .quality-slider {
+            width: 100%;
+            margin: 1rem 0;
+        }
+
+        .quality-value {
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+    <!-- Header will be loaded dynamically -->
+    <div id="header-placeholder"></div>
+
+    <!-- Main Content -->
+    <main class="container py-5">
+        <div class="row">
+            <div class="col-lg-8">
+                <h1 class="mb-4">Image to JPG Converter</h1>
+                
+                <!-- Converter Section -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <!-- Drop Zone -->
+                        <div id="dropZone" class="drop-zone">
+                            <i class="fas fa-cloud-upload-alt fa-3x mb-3"></i>
+                            <h5>Drag & Drop your image here</h5>
+                            <p class="mb-2">or</p>
+                            <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+                                Choose File
+                            </button>
+                            <input type="file" id="fileInput" accept="image/*" style="display: none">
+                        </div>
+
+                        <!-- Loading Indicator -->
+                        <div class="loading text-center">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2">Converting image...</p>
+                        </div>
+
+                        <!-- Preview Section -->
+                        <div id="previewContainer" class="preview-container">
+                            <h5>Preview:</h5>
+                            <img id="previewImage" class="preview-image" alt="Preview">
+                            
+                            <!-- Quality Control -->
+                            <div class="conversion-options">
+                                <label for="qualitySlider" class="form-label">
+                                    JPG Quality: <span id="qualityValue" class="quality-value">90%</span>
+                                </label>
+                                <input type="range" class="form-range quality-slider" id="qualitySlider" 
+                                    min="1" max="100" value="90">
+                                <small class="text-muted d-block">
+                                    Adjust the quality to balance between file size and image quality
+                                </small>
+                            </div>
+
+                            <div class="file-info">
+                                <div class="row">
+                                    <div class="col-sm-6">
+                                        <p><strong>Original File:</strong> <span id="originalFileName">-</span></p>
+                                        <p><strong>Original Size:</strong> <span id="originalFileSize">-</span></p>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <p><strong>New Format:</strong> JPG</p>
+                                        <p><strong>Dimensions:</strong> <span id="imageDimensions">-</span></p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button id="downloadBtn" class="btn btn-success mt-3">
+                                <i class="fas fa-download"></i> Download JPG
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Features Section -->
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Features</h5>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success me-2"></i>Convert any image to JPG format</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Adjustable quality settings</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Drag & Drop support</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Preview before download</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Fast and free conversion</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <!-- Ad Space -->
+                <div class="ad-space sidebar-ad mb-4">
+                    <small>Advertisement</small>
+                </div>
+
+                <!-- Tool Info -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">About This Tool</h5>
+                        <p class="card-text">
+                            Convert your images to JPG format with adjustable quality settings. JPG format is perfect for 
+                            photographs and complex images with many colors. Adjust the quality slider to find the perfect 
+                            balance between file size and image quality.
+                        </p>
+                        <div class="author-credit">
+                            App Built by Aqib Chaudhary
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer will be loaded dynamically -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JavaScript -->
+    <script src="../js/main.js"></script>
+    <script>
+        // DOM Elements
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const previewContainer = document.getElementById('previewContainer');
+        const previewImage = document.getElementById('previewImage');
+        const originalFileName = document.getElementById('originalFileName');
+        const originalFileSize = document.getElementById('originalFileSize');
+        const imageDimensions = document.getElementById('imageDimensions');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const loadingIndicator = document.querySelector('.loading');
+        const qualitySlider = document.getElementById('qualitySlider');
+        const qualityValue = document.getElementById('qualityValue');
+
+        // Quality slider event
+        qualitySlider.addEventListener('input', function() {
+            qualityValue.textContent = this.value + '%';
+        });
+
+        // Drag and Drop Events
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+            document.body.addEventListener(eventName, preventDefaults, false);
+        });
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, unhighlight, false);
+        });
+
+        dropZone.addEventListener('drop', handleDrop, false);
+        fileInput.addEventListener('change', handleFileSelect, false);
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        function highlight(e) {
+            dropZone.classList.add('dragover');
+        }
+
+        function unhighlight(e) {
+            dropZone.classList.remove('dragover');
+        }
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+        }
+
+        function handleFileSelect(e) {
+            const files = e.target.files;
+            handleFiles(files);
+        }
+
+        function handleFiles(files) {
+            if (files.length === 0) return;
+            const file = files[0];
+            
+            // Check if file is an image
+            if (!file.type.startsWith('image/')) {
+                alert('Please upload an image file.');
+                return;
+            }
+
+            // Show loading
+            loadingIndicator.style.display = 'block';
+            previewContainer.style.display = 'none';
+
+            // Update file info
+            originalFileName.textContent = file.name;
+            originalFileSize.textContent = formatFileSize(file.size);
+
+            // Create preview
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImage.src = e.target.result;
+                previewImage.onload = function() {
+                    imageDimensions.textContent = `${this.width} x ${this.height}`;
+                    
+                    // Hide loading and show preview
+                    loadingIndicator.style.display = 'none';
+                    previewContainer.style.display = 'block';
+                    downloadBtn.style.display = 'inline-block';
+                };
+            };
+            reader.readAsDataURL(file);
+
+            // Setup download button
+            downloadBtn.onclick = function() {
+                convertToJPG(file);
+            };
+        }
+
+        function convertToJPG(file) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+
+            img.onload = function() {
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.fillStyle = 'white'; // Set white background for transparent images
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0);
+                
+                canvas.toBlob(function(blob) {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = file.name.replace(/\.[^/.]+$/, '') + '.jpg';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                }, 'image/jpeg', qualitySlider.value / 100);
+            };
+
+            img.src = URL.createObjectURL(file);
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+    </script>
+</body>
+</html> 

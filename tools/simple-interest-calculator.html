@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Interest Calculator - Multi-Tools</title>
+    <meta name="description" content="Free online simple interest calculator. Calculate interest on loans and investments with easy comparison to compound interest.">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Chart.js -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .result-card {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .result-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #0d6efd;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 2rem;
+        }
+
+        .form-label {
+            font-weight: 500;
+        }
+
+        .input-group-text {
+            background-color: #f8f9fa;
+        }
+
+        .tooltip-icon {
+            color: #6c757d;
+            cursor: help;
+            margin-left: 0.5rem;
+        }
+
+        .comparison-table {
+            font-size: 0.9rem;
+        }
+
+        .comparison-table th {
+            background-color: #f8f9fa;
+        }
+
+        .comparison-highlight {
+            background-color: #e8f4ff !important;
+        }
+
+        .formula-box {
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            font-family: 'Courier New', monospace;
+        }
+
+        .formula-box .formula-title {
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .formula-box .formula {
+            color: #0d6efd;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header will be loaded dynamically -->
+    <div id="header-placeholder"></div>
+
+    <!-- Main Content -->
+    <main class="container py-5">
+        <div class="row">
+            <div class="col-lg-8">
+                <h1 class="mb-4">Simple Interest Calculator</h1>
+                
+                <!-- Calculator Section -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <!-- Formula Box -->
+                        <div class="formula-box mb-4">
+                            <div class="formula-title">Simple Interest Formula:</div>
+                            <div class="formula">I = P × r × t</div>
+                            <small class="text-muted">
+                                where I = Interest, P = Principal, r = Annual Rate, t = Time in years
+                            </small>
+                        </div>
+
+                        <form id="interestForm" class="row g-3">
+                            <!-- Principal Amount -->
+                            <div class="col-md-6">
+                                <label class="form-label">
+                                    Principal Amount
+                                    <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Initial amount of money"></i>
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" class="form-control" id="principal" value="10000" min="0" required>
+                                </div>
+                            </div>
+
+                            <!-- Interest Rate -->
+                            <div class="col-md-6">
+                                <label class="form-label">
+                                    Annual Interest Rate
+                                    <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Annual interest rate percentage"></i>
+                                </label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="rate" value="5" step="0.1" min="0" max="100" required>
+                                    <span class="input-group-text">%</span>
+                                </div>
+                            </div>
+
+                            <!-- Time Period -->
+                            <div class="col-md-6">
+                                <label class="form-label">
+                                    Time Period
+                                    <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" title="Duration of the loan or investment"></i>
+                                </label>
+                                <div class="input-group">
+                                    <input type="number" class="form-control" id="time" value="5" min="0.1" step="0.1" required>
+                                    <select class="form-select" id="timeUnit" style="max-width: 120px;">
+                                        <option value="years">Years</option>
+                                        <option value="months">Months</option>
+                                        <option value="days">Days</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Calculate Button -->
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-calculator"></i> Calculate
+                                </button>
+                                <button type="reset" class="btn btn-secondary ms-2">
+                                    <i class="fas fa-redo"></i> Reset
+                                </button>
+                            </div>
+                        </form>
+
+                        <!-- Results Section -->
+                        <div id="results" class="mt-4" style="display: none;">
+                            <h4 class="mb-4">Interest Summary</h4>
+                            
+                            <div class="row">
+                                <!-- Simple Interest -->
+                                <div class="col-md-4">
+                                    <div class="result-card text-center">
+                                        <h6>Simple Interest</h6>
+                                        <div class="result-value" id="simpleInterest">$0</div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Total Amount -->
+                                <div class="col-md-4">
+                                    <div class="result-card text-center">
+                                        <h6>Total Amount</h6>
+                                        <div class="result-value" id="totalAmount">$0</div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Daily Interest -->
+                                <div class="col-md-4">
+                                    <div class="result-card text-center">
+                                        <h6>Daily Interest</h6>
+                                        <div class="result-value" id="dailyInterest">$0</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Charts -->
+                            <div class="row mt-4">
+                                <div class="col-md-6">
+                                    <h5>Principal vs Interest</h5>
+                                    <div class="chart-container">
+                                        <canvas id="pieChart"></canvas>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h5>Growth Over Time</h5>
+                                    <div class="chart-container">
+                                        <canvas id="lineChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Comparison with Compound Interest -->
+                            <div class="mt-4">
+                                <h5>Comparison with Compound Interest</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered comparison-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Interest Type</th>
+                                                <th>Interest Earned</th>
+                                                <th>Total Amount</th>
+                                                <th>Effective Rate</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr class="comparison-highlight">
+                                                <td>Simple Interest</td>
+                                                <td id="simpleInterestComp">$0</td>
+                                                <td id="simpleTotalComp">$0</td>
+                                                <td id="simpleRateComp">0%</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Compound Interest (Annual)</td>
+                                                <td id="compoundInterestAnnual">$0</td>
+                                                <td id="compoundTotalAnnual">$0</td>
+                                                <td id="compoundRateAnnual">0%</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Compound Interest (Monthly)</td>
+                                                <td id="compoundInterestMonthly">$0</td>
+                                                <td id="compoundTotalMonthly">$0</td>
+                                                <td id="compoundRateMonthly">0%</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Features Section -->
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Features</h5>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success me-2"></i>Calculate simple interest and total amount</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Compare with compound interest calculations</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Visual representation of interest growth</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Daily interest breakdown</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Flexible time period options</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <!-- Ad Space -->
+                <div class="ad-space sidebar-ad mb-4">
+                    <small>Advertisement</small>
+                </div>
+
+                <!-- Tool Info -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">About This Tool</h5>
+                        <p class="card-text">
+                            Calculate simple interest on loans or investments. Compare with compound interest to understand 
+                            the difference between interest calculation methods. Perfect for basic financial calculations 
+                            and educational purposes.
+                        </p>
+                        <div class="author-credit">
+                            App Built by Aqib Chaudhary
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer will be loaded dynamically -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+    <!-- Custom JavaScript -->
+    <script src="../js/main.js"></script>
+    <script>
+        // Initialize tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+
+        // Charts
+        let pieChart = null;
+        let lineChart = null;
+
+        // Calculate interest
+        function calculateInterest(e) {
+            e.preventDefault();
+
+            // Get input values
+            const principal = parseFloat(document.getElementById('principal').value);
+            const rate = parseFloat(document.getElementById('rate').value) / 100;
+            let time = parseFloat(document.getElementById('time').value);
+            const timeUnit = document.getElementById('timeUnit').value;
+
+            // Convert time to years
+            let timeInYears;
+            switch(timeUnit) {
+                case 'months':
+                    timeInYears = time / 12;
+                    break;
+                case 'days':
+                    timeInYears = time / 365;
+                    break;
+                default:
+                    timeInYears = time;
+            }
+
+            // Calculate simple interest
+            const simpleInterest = principal * rate * timeInYears;
+            const totalAmount = principal + simpleInterest;
+            const dailyInterest = simpleInterest / (timeInYears * 365);
+
+            // Calculate compound interest (annual)
+            const compoundTotalAnnual = principal * Math.pow(1 + rate, timeInYears);
+            const compoundInterestAnnual = compoundTotalAnnual - principal;
+
+            // Calculate compound interest (monthly)
+            const monthlyRate = rate / 12;
+            const months = timeInYears * 12;
+            const compoundTotalMonthly = principal * Math.pow(1 + monthlyRate, months);
+            const compoundInterestMonthly = compoundTotalMonthly - principal;
+
+            // Calculate effective rates
+            const simpleRate = (simpleInterest / principal / timeInYears) * 100;
+            const compoundRateAnnual = ((compoundTotalAnnual / principal) ** (1/timeInYears) - 1) * 100;
+            const compoundRateMonthly = ((compoundTotalMonthly / principal) ** (1/timeInYears) - 1) * 100;
+
+            // Update results
+            document.getElementById('simpleInterest').textContent = formatCurrency(simpleInterest);
+            document.getElementById('totalAmount').textContent = formatCurrency(totalAmount);
+            document.getElementById('dailyInterest').textContent = formatCurrency(dailyInterest);
+
+            // Update comparison table
+            document.getElementById('simpleInterestComp').textContent = formatCurrency(simpleInterest);
+            document.getElementById('simpleTotalComp').textContent = formatCurrency(totalAmount);
+            document.getElementById('simpleRateComp').textContent = formatPercent(simpleRate);
+
+            document.getElementById('compoundInterestAnnual').textContent = formatCurrency(compoundInterestAnnual);
+            document.getElementById('compoundTotalAnnual').textContent = formatCurrency(compoundTotalAnnual);
+            document.getElementById('compoundRateAnnual').textContent = formatPercent(compoundRateAnnual);
+
+            document.getElementById('compoundInterestMonthly').textContent = formatCurrency(compoundInterestMonthly);
+            document.getElementById('compoundTotalMonthly').textContent = formatCurrency(compoundTotalMonthly);
+            document.getElementById('compoundRateMonthly').textContent = formatPercent(compoundRateMonthly);
+
+            // Show results section
+            document.getElementById('results').style.display = 'block';
+
+            // Update charts
+            updateCharts(principal, simpleInterest, timeInYears);
+        }
+
+        // Format currency
+        function formatCurrency(value) {
+            return '$' + value.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+        }
+
+        // Format percentage
+        function formatPercent(value) {
+            return value.toFixed(2) + '%';
+        }
+
+        // Update charts
+        function updateCharts(principal, interest, time) {
+            // Pie Chart
+            const pieData = {
+                labels: ['Principal', 'Interest'],
+                datasets: [{
+                    data: [principal, interest],
+                    backgroundColor: ['#0d6efd', '#dc3545'],
+                    borderWidth: 1
+                }]
+            };
+
+            if (pieChart) {
+                pieChart.destroy();
+            }
+
+            pieChart = new Chart(document.getElementById('pieChart'), {
+                type: 'pie',
+                data: pieData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+
+            // Line Chart
+            const years = Math.ceil(time);
+            const labels = Array.from({length: years + 1}, (_, i) => `Year ${i}`);
+            const balanceData = Array.from({length: years + 1}, (_, i) => principal + (interest * i / years));
+
+            const lineData = {
+                labels: labels,
+                datasets: [{
+                    label: 'Balance',
+                    data: balanceData,
+                    borderColor: '#0d6efd',
+                    fill: false,
+                    tension: 0.1
+                }]
+            };
+
+            if (lineChart) {
+                lineChart.destroy();
+            }
+
+            lineChart = new Chart(document.getElementById('lineChart'), {
+                type: 'line',
+                data: lineData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: value => '$' + value.toFixed(0).replace(/\d(?=(\d{3})+$)/g, '$&,')
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Event listeners
+        document.getElementById('interestForm').addEventListener('submit', calculateInterest);
+        document.getElementById('interestForm').addEventListener('reset', () => {
+            document.getElementById('results').style.display = 'none';
+            if (pieChart) pieChart.destroy();
+            if (lineChart) lineChart.destroy();
+        });
+    </script>
+</body>
+</html> 

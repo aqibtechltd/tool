@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PayPal Fee Calculator - Multi-Tools</title>
+    <meta name="description" content="Free online PayPal fee calculator. Calculate PayPal transaction fees, international fees, and determine net amounts. Includes reverse calculation for desired net amount.">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Chart.js -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .result-card {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .result-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #0d6efd;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 2rem;
+        }
+
+        .fee-breakdown-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .fee-breakdown-item:last-child {
+            border-bottom: none;
+            font-weight: bold;
+        }
+
+        .calculator-toggle {
+            margin-bottom: 2rem;
+        }
+
+        .tooltip-icon {
+            color: #6c757d;
+            cursor: help;
+            margin-left: 0.5rem;
+        }
+
+        .fee-type-badge {
+            font-size: 0.8rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            margin-left: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header will be loaded dynamically -->
+    <div id="header-placeholder"></div>
+
+    <!-- Main Content -->
+    <main class="container py-5">
+        <div class="row">
+            <div class="col-lg-8">
+                <h1 class="mb-4">PayPal Fee Calculator</h1>
+                
+                <!-- Calculator Section -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <!-- Calculator Toggle -->
+                        <div class="calculator-toggle">
+                            <div class="btn-group w-100" role="group">
+                                <input type="radio" class="btn-check" name="calculatorType" id="standardCalc" checked>
+                                <label class="btn btn-outline-primary" for="standardCalc">
+                                    <i class="fas fa-calculator"></i> Standard Calculator
+                                </label>
+                                <input type="radio" class="btn-check" name="calculatorType" id="reverseCalc">
+                                <label class="btn btn-outline-primary" for="reverseCalc">
+                                    <i class="fas fa-undo"></i> Reverse Calculator
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Standard Calculator Form -->
+                        <form id="standardForm" class="calculator-form">
+                            <div class="row g-3">
+                                <!-- Amount -->
+                                <div class="col-md-6">
+                                    <label class="form-label">
+                                        Amount
+                                        <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" 
+                                           title="Enter the amount you want to send or receive"></i>
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control" id="amount" step="0.01" min="0" required>
+                                    </div>
+                                </div>
+
+                                <!-- Transaction Type -->
+                                <div class="col-md-6">
+                                    <label class="form-label">
+                                        Transaction Type
+                                        <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" 
+                                           title="Select the type of PayPal transaction"></i>
+                                    </label>
+                                    <select class="form-select" id="transactionType" required>
+                                        <option value="goods">Goods & Services</option>
+                                        <option value="personal">Personal Payment</option>
+                                        <option value="international">International Payment</option>
+                                    </select>
+                                </div>
+
+                                <!-- Currency -->
+                                <div class="col-md-6">
+                                    <label class="form-label">
+                                        Currency
+                                        <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" 
+                                           title="Select the currency for the transaction"></i>
+                                    </label>
+                                    <select class="form-select" id="currency" required>
+                                        <option value="USD">USD - US Dollar</option>
+                                        <option value="EUR">EUR - Euro</option>
+                                        <option value="GBP">GBP - British Pound</option>
+                                        <option value="CAD">CAD - Canadian Dollar</option>
+                                        <option value="AUD">AUD - Australian Dollar</option>
+                                    </select>
+                                </div>
+
+                                <!-- Country -->
+                                <div class="col-md-6">
+                                    <label class="form-label">
+                                        Country
+                                        <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" 
+                                           title="Select your country for accurate fee calculation"></i>
+                                    </label>
+                                    <select class="form-select" id="country" required>
+                                        <option value="US">United States</option>
+                                        <option value="GB">United Kingdom</option>
+                                        <option value="CA">Canada</option>
+                                        <option value="AU">Australia</option>
+                                        <option value="OTHER">Other</option>
+                                    </select>
+                                </div>
+
+                                <!-- Calculate Button -->
+                                <div class="col-12">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-calculator"></i> Calculate Fees
+                                    </button>
+                                    <button type="reset" class="btn btn-secondary ms-2">
+                                        <i class="fas fa-redo"></i> Reset
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+
+                        <!-- Reverse Calculator Form -->
+                        <form id="reverseForm" class="calculator-form" style="display: none;">
+                            <div class="row g-3">
+                                <!-- Desired Net Amount -->
+                                <div class="col-md-6">
+                                    <label class="form-label">
+                                        Desired Net Amount
+                                        <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" 
+                                           title="Enter the amount you want to receive after fees"></i>
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control" id="desiredAmount" step="0.01" min="0" required>
+                                    </div>
+                                </div>
+
+                                <!-- Same fields as standard calculator -->
+                                <div class="col-md-6">
+                                    <label class="form-label">Transaction Type</label>
+                                    <select class="form-select" id="reverseTransactionType" required>
+                                        <option value="goods">Goods & Services</option>
+                                        <option value="personal">Personal Payment</option>
+                                        <option value="international">International Payment</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">Currency</label>
+                                    <select class="form-select" id="reverseCurrency" required>
+                                        <option value="USD">USD - US Dollar</option>
+                                        <option value="EUR">EUR - Euro</option>
+                                        <option value="GBP">GBP - British Pound</option>
+                                        <option value="CAD">CAD - Canadian Dollar</option>
+                                        <option value="AUD">AUD - Australian Dollar</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <label class="form-label">Country</label>
+                                    <select class="form-select" id="reverseCountry" required>
+                                        <option value="US">United States</option>
+                                        <option value="GB">United Kingdom</option>
+                                        <option value="CA">Canada</option>
+                                        <option value="AU">Australia</option>
+                                        <option value="OTHER">Other</option>
+                                    </select>
+                                </div>
+
+                                <!-- Calculate Button -->
+                                <div class="col-12">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-calculator"></i> Calculate Required Amount
+                                    </button>
+                                    <button type="reset" class="btn btn-secondary ms-2">
+                                        <i class="fas fa-redo"></i> Reset
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+
+                        <!-- Results Section -->
+                        <div id="results" class="mt-4" style="display: none;">
+                            <h4 class="mb-4">Fee Calculation Results</h4>
+                            
+                            <!-- Summary Cards -->
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-4">
+                                    <div class="result-card">
+                                        <h6>Gross Amount</h6>
+                                        <div class="result-value" id="grossAmount">$0</div>
+                                        <small class="text-muted">Amount before fees</small>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-4">
+                                    <div class="result-card">
+                                        <h6>Total Fees</h6>
+                                        <div class="result-value" id="totalFees">$0</div>
+                                        <small class="text-muted">All fees combined</small>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-4">
+                                    <div class="result-card">
+                                        <h6>Net Amount</h6>
+                                        <div class="result-value" id="netAmount">$0</div>
+                                        <small class="text-muted">Amount after fees</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Fee Breakdown -->
+                            <div class="card mt-4">
+                                <div class="card-body">
+                                    <h5 class="card-title">Fee Breakdown</h5>
+                                    <div id="feeBreakdown"></div>
+                                </div>
+                            </div>
+
+                            <!-- Fee Chart -->
+                            <div class="card mt-4">
+                                <div class="card-body">
+                                    <h5 class="card-title">Visual Breakdown</h5>
+                                    <div class="chart-container">
+                                        <canvas id="feeChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <!-- Ad Space -->
+                <div class="ad-space sidebar-ad mb-4">
+                    <small>Advertisement</small>
+                </div>
+
+                <!-- Tool Info -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">About This Tool</h5>
+                        <p class="card-text">
+                            Calculate PayPal fees for different types of transactions. This calculator helps you determine 
+                            the fees PayPal will charge and your net amount. Use the reverse calculator to figure out how 
+                            much to charge to receive your desired amount after fees.
+                        </p>
+                        <div class="author-credit">
+                            App Built by Aqib Chaudhary
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fee Information -->
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">PayPal Fee Structure</h5>
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <strong>Goods & Services:</strong><br>
+                                2.9% + $0.30 per transaction
+                            </li>
+                            <li class="mb-2">
+                                <strong>International Transactions:</strong><br>
+                                Additional 1.5% international fee
+                            </li>
+                            <li class="mb-2">
+                                <strong>Personal Payments:</strong><br>
+                                Free when sending from bank/balance
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer will be loaded dynamically -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+    <!-- Custom JavaScript -->
+    <script src="../js/main.js"></script>
+    <script>
+        // Initialize tooltips
+        document.addEventListener('DOMContentLoaded', function() {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
+            // Load header and footer
+            fetch('../components/header.html')
+                .then(response => response.text())
+                .then(data => document.getElementById('header-placeholder').innerHTML = data);
+
+            fetch('../components/footer.html')
+                .then(response => response.text())
+                .then(data => document.getElementById('footer-placeholder').innerHTML = data);
+        });
+
+        // Fee rates
+        const feeRates = {
+            goods: {
+                percentage: 0.029,
+                fixed: 0.30
+            },
+            personal: {
+                percentage: 0,
+                fixed: 0
+            },
+            international: {
+                percentage: 0.044, // 2.9% + 1.5%
+                fixed: 0.30
+            }
+        };
+
+        // Chart instance
+        let feeChart = null;
+
+        // Toggle calculator forms
+        document.getElementById('standardCalc').addEventListener('change', function() {
+            document.getElementById('standardForm').style.display = 'block';
+            document.getElementById('reverseForm').style.display = 'none';
+            document.getElementById('results').style.display = 'none';
+        });
+
+        document.getElementById('reverseCalc').addEventListener('change', function() {
+            document.getElementById('standardForm').style.display = 'none';
+            document.getElementById('reverseForm').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+        });
+
+        // Calculate fees for standard calculator
+        function calculateFees(e) {
+            e.preventDefault();
+            const amount = parseFloat(document.getElementById('amount').value);
+            const type = document.getElementById('transactionType').value;
+            const currency = document.getElementById('currency').value;
+            const country = document.getElementById('country').value;
+
+            const fees = calculatePayPalFees(amount, type, currency, country);
+            updateResults(amount, fees.totalFee, amount - fees.totalFee, fees);
+        }
+
+        // Calculate required amount for reverse calculator
+        function calculateReverse(e) {
+            e.preventDefault();
+            const desiredAmount = parseFloat(document.getElementById('desiredAmount').value);
+            const type = document.getElementById('reverseTransactionType').value;
+            const currency = document.getElementById('reverseCurrency').value;
+            const country = document.getElementById('reverseCountry').value;
+
+            const rate = feeRates[type];
+            const grossAmount = (desiredAmount + rate.fixed) / (1 - rate.percentage);
+            const fees = calculatePayPalFees(grossAmount, type, currency, country);
+            
+            updateResults(grossAmount, fees.totalFee, desiredAmount, fees);
+        }
+
+        // Calculate PayPal fees
+        function calculatePayPalFees(amount, type, currency, country) {
+            const rate = feeRates[type];
+            const percentageFee = amount * rate.percentage;
+            const fixedFee = rate.fixed;
+            const totalFee = percentageFee + fixedFee;
+
+            return {
+                percentageFee,
+                fixedFee,
+                totalFee
+            };
+        }
+
+        // Update results
+        function updateResults(gross, fees, net, breakdown) {
+            // Update summary cards
+            document.getElementById('grossAmount').textContent = formatCurrency(gross);
+            document.getElementById('totalFees').textContent = formatCurrency(fees);
+            document.getElementById('netAmount').textContent = formatCurrency(net);
+
+            // Update fee breakdown
+            const breakdownHtml = `
+                <div class="fee-breakdown-item">
+                    <span>Gross Amount:</span>
+                    <span>${formatCurrency(gross)}</span>
+                </div>
+                <div class="fee-breakdown-item">
+                    <span>Percentage Fee:</span>
+                    <span>${formatCurrency(breakdown.percentageFee)}</span>
+                </div>
+                <div class="fee-breakdown-item">
+                    <span>Fixed Fee:</span>
+                    <span>${formatCurrency(breakdown.fixedFee)}</span>
+                </div>
+                <div class="fee-breakdown-item">
+                    <span>Total Fees:</span>
+                    <span>${formatCurrency(fees)}</span>
+                </div>
+                <div class="fee-breakdown-item">
+                    <span>Net Amount:</span>
+                    <span>${formatCurrency(net)}</span>
+                </div>
+            `;
+            document.getElementById('feeBreakdown').innerHTML = breakdownHtml;
+
+            // Update chart
+            updateChart(gross, fees);
+
+            // Show results
+            document.getElementById('results').style.display = 'block';
+        }
+
+        // Update fee chart
+        function updateChart(gross, fees) {
+            const net = gross - fees;
+            const data = {
+                labels: ['Net Amount', 'Fees'],
+                datasets: [{
+                    data: [net, fees],
+                    backgroundColor: ['#28a745', '#dc3545'],
+                    borderWidth: 1
+                }]
+            };
+
+            if (feeChart) {
+                feeChart.destroy();
+            }
+
+            feeChart = new Chart(document.getElementById('feeChart'), {
+                type: 'doughnut',
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Format currency
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(value);
+        }
+
+        // Event listeners
+        document.getElementById('standardForm').addEventListener('submit', calculateFees);
+        document.getElementById('reverseForm').addEventListener('submit', calculateReverse);
+
+        // Reset forms
+        document.getElementById('standardForm').addEventListener('reset', () => {
+            document.getElementById('results').style.display = 'none';
+            if (feeChart) feeChart.destroy();
+        });
+
+        document.getElementById('reverseForm').addEventListener('reset', () => {
+            document.getElementById('results').style.display = 'none';
+            if (feeChart) feeChart.destroy();
+        });
+    </script>
+</body>
+</html> 

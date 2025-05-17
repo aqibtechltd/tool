@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GST/VAT Calculator - Multi-Tools</title>
+    <meta name="description" content="Free online GST/VAT calculator. Calculate Goods and Services Tax or Value Added Tax with support for multiple tax rates, inclusive/exclusive calculations, and detailed breakdowns.">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Chart.js -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .result-card {
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .result-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #0d6efd;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 2rem;
+        }
+
+        .tax-breakdown-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .tax-breakdown-item:last-child {
+            border-bottom: none;
+            font-weight: bold;
+        }
+
+        .calculator-toggle {
+            margin-bottom: 2rem;
+        }
+
+        .tooltip-icon {
+            color: #6c757d;
+            cursor: help;
+            margin-left: 0.5rem;
+        }
+
+        .tax-highlight {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .tax-rate-info {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .tax-rate-table {
+            font-size: 0.9rem;
+        }
+
+        .tax-rate-table th {
+            background-color: #f8f9fa;
+        }
+
+        .comparison-card {
+            border-left: 4px solid #0d6efd;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header will be loaded dynamically -->
+    <div id="header-placeholder"></div>
+
+    <!-- Main Content -->
+    <main class="container py-5">
+        <div class="row">
+            <div class="col-lg-8">
+                <h1 class="mb-4">GST/VAT Calculator</h1>
+                
+                <!-- Calculator Section -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <!-- Calculator Toggle -->
+                        <div class="calculator-toggle">
+                            <div class="btn-group w-100" role="group">
+                                <input type="radio" class="btn-check" name="calculatorType" id="addTax" checked>
+                                <label class="btn btn-outline-primary" for="addTax">
+                                    <i class="fas fa-plus"></i> Add Tax
+                                </label>
+                                <input type="radio" class="btn-check" name="calculatorType" id="removeTax">
+                                <label class="btn btn-outline-primary" for="removeTax">
+                                    <i class="fas fa-minus"></i> Remove Tax
+                                </label>
+                                <input type="radio" class="btn-check" name="calculatorType" id="multipleItems">
+                                <label class="btn btn-outline-primary" for="multipleItems">
+                                    <i class="fas fa-list"></i> Multiple Items
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Add Tax Calculator -->
+                        <form id="addTaxForm" class="calculator-form">
+                            <div class="row g-3">
+                                <!-- Amount -->
+                                <div class="col-md-6">
+                                    <label class="form-label">
+                                        Amount (Excluding Tax)
+                                        <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" 
+                                           title="Enter the amount before tax"></i>
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control" id="baseAmount" step="0.01" min="0" required>
+                                    </div>
+                                </div>
+
+                                <!-- Tax Rate -->
+                                <div class="col-md-6">
+                                    <label class="form-label">
+                                        Tax Rate
+                                        <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" 
+                                           title="Select or enter the tax rate"></i>
+                                    </label>
+                                    <div class="input-group">
+                                        <select class="form-select" id="taxRate">
+                                            <option value="custom">Custom Rate</option>
+                                            <option value="5">5% GST</option>
+                                            <option value="10">10% GST</option>
+                                            <option value="12.5">12.5% VAT</option>
+                                            <option value="15">15% VAT</option>
+                                            <option value="20">20% VAT</option>
+                                        </select>
+                                        <input type="number" class="form-control" id="customRate" step="0.1" min="0" max="100" placeholder="Custom %" style="display: none;">
+                                    </div>
+                                </div>
+
+                                <!-- Calculate Button -->
+                                <div class="col-12">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-calculator"></i> Calculate Tax
+                                    </button>
+                                    <button type="reset" class="btn btn-secondary ms-2">
+                                        <i class="fas fa-redo"></i> Reset
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+
+                        <!-- Remove Tax Calculator -->
+                        <form id="removeTaxForm" class="calculator-form" style="display: none;">
+                            <div class="row g-3">
+                                <!-- Amount -->
+                                <div class="col-md-6">
+                                    <label class="form-label">
+                                        Amount (Including Tax)
+                                        <i class="fas fa-info-circle tooltip-icon" data-bs-toggle="tooltip" 
+                                           title="Enter the amount including tax"></i>
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" class="form-control" id="inclusiveAmount" step="0.01" min="0" required>
+                                    </div>
+                                </div>
+
+                                <!-- Tax Rate -->
+                                <div class="col-md-6">
+                                    <label class="form-label">Tax Rate</label>
+                                    <div class="input-group">
+                                        <select class="form-select" id="inclusiveTaxRate">
+                                            <option value="custom">Custom Rate</option>
+                                            <option value="5">5% GST</option>
+                                            <option value="10">10% GST</option>
+                                            <option value="12.5">12.5% VAT</option>
+                                            <option value="15">15% VAT</option>
+                                            <option value="20">20% VAT</option>
+                                        </select>
+                                        <input type="number" class="form-control" id="inclusiveCustomRate" step="0.1" min="0" max="100" placeholder="Custom %" style="display: none;">
+                                    </div>
+                                </div>
+
+                                <!-- Calculate Button -->
+                                <div class="col-12">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-calculator"></i> Remove Tax
+                                    </button>
+                                    <button type="reset" class="btn btn-secondary ms-2">
+                                        <i class="fas fa-redo"></i> Reset
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+
+                        <!-- Multiple Items Calculator -->
+                        <form id="multipleItemsForm" class="calculator-form" style="display: none;">
+                            <div class="row g-3">
+                                <!-- Items Container -->
+                                <div class="col-12" id="itemsContainer">
+                                    <div class="tax-rate-info">
+                                        <div class="row g-3">
+                                            <div class="col-md-4">
+                                                <label class="form-label">Item Description</label>
+                                                <input type="text" class="form-control item-description" placeholder="Item name">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label">Amount</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text">$</span>
+                                                    <input type="number" class="form-control item-amount" step="0.01" min="0">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label">Tax Rate</label>
+                                                <select class="form-select item-tax-rate">
+                                                    <option value="0">No Tax</option>
+                                                    <option value="5">5% GST</option>
+                                                    <option value="10">10% GST</option>
+                                                    <option value="12.5">12.5% VAT</option>
+                                                    <option value="15">15% VAT</option>
+                                                    <option value="20">20% VAT</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Add/Remove Item Buttons -->
+                                <div class="col-12">
+                                    <button type="button" class="btn btn-outline-primary" id="addItem">
+                                        <i class="fas fa-plus"></i> Add Another Item
+                                    </button>
+                                    <button type="button" class="btn btn-outline-danger ms-2" id="removeItem">
+                                        <i class="fas fa-minus"></i> Remove Last Item
+                                    </button>
+                                </div>
+
+                                <!-- Calculate Button -->
+                                <div class="col-12">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-calculator"></i> Calculate Total
+                                    </button>
+                                    <button type="reset" class="btn btn-secondary ms-2">
+                                        <i class="fas fa-redo"></i> Reset
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+
+                        <!-- Results Section -->
+                        <div id="results" class="mt-4" style="display: none;">
+                            <h4 class="mb-4">Tax Calculation Results</h4>
+                            
+                            <!-- Summary Cards -->
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-4">
+                                    <div class="result-card">
+                                        <h6>Net Amount</h6>
+                                        <div class="result-value" id="netAmount">$0</div>
+                                        <small class="text-muted">Before tax</small>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-4">
+                                    <div class="result-card">
+                                        <h6>Tax Amount</h6>
+                                        <div class="result-value tax-highlight" id="taxAmount">$0</div>
+                                        <small class="text-muted" id="taxRateDisplay">at 0%</small>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-4">
+                                    <div class="result-card">
+                                        <h6>Gross Amount</h6>
+                                        <div class="result-value" id="grossAmount">$0</div>
+                                        <small class="text-muted">Including tax</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tax Breakdown -->
+                            <div class="card mt-4">
+                                <div class="card-body">
+                                    <h5 class="card-title">Tax Breakdown</h5>
+                                    <div id="taxBreakdown"></div>
+                                </div>
+                            </div>
+
+                            <!-- Visual Breakdown -->
+                            <div class="card mt-4">
+                                <div class="card-body">
+                                    <h5 class="card-title">Visual Breakdown</h5>
+                                    <div class="chart-container">
+                                        <canvas id="taxChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <!-- Ad Space -->
+                <div class="ad-space sidebar-ad mb-4">
+                    <small>Advertisement</small>
+                </div>
+
+                <!-- Tool Info -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">About This Tool</h5>
+                        <p class="card-text">
+                            Calculate GST (Goods and Services Tax) or VAT (Value Added Tax) with this comprehensive calculator. 
+                            Features include adding tax to net amounts, removing tax from gross amounts, and calculating tax for 
+                            multiple items with different rates.
+                        </p>
+                        <div class="author-credit">
+                            App Built by Aqib Chaudhary
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tax Information -->
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Tax Information</h5>
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <strong>GST/VAT:</strong><br>
+                                A consumption tax on goods and services
+                            </li>
+                            <li class="mb-2">
+                                <strong>Common Rates:</strong><br>
+                                5% - 20% depending on country/region
+                            </li>
+                            <li class="mb-2">
+                                <strong>Calculations:</strong><br>
+                                Add tax: Amount × (1 + Rate)<br>
+                                Remove tax: Amount ÷ (1 + Rate)
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer will be loaded dynamically -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+    <!-- Custom JavaScript -->
+    <script src="../js/main.js"></script>
+    <script>
+        // Initialize tooltips
+        document.addEventListener('DOMContentLoaded', function() {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
+            // Load header and footer
+            fetch('../components/header.html')
+                .then(response => response.text())
+                .then(data => document.getElementById('header-placeholder').innerHTML = data);
+
+            fetch('../components/footer.html')
+                .then(response => response.text())
+                .then(data => document.getElementById('footer-placeholder').innerHTML = data);
+        });
+
+        // Chart instance
+        let taxChart = null;
+
+        // Toggle calculator forms
+        document.getElementById('addTax').addEventListener('change', function() {
+            document.getElementById('addTaxForm').style.display = 'block';
+            document.getElementById('removeTaxForm').style.display = 'none';
+            document.getElementById('multipleItemsForm').style.display = 'none';
+            document.getElementById('results').style.display = 'none';
+        });
+
+        document.getElementById('removeTax').addEventListener('change', function() {
+            document.getElementById('addTaxForm').style.display = 'none';
+            document.getElementById('removeTaxForm').style.display = 'block';
+            document.getElementById('multipleItemsForm').style.display = 'none';
+            document.getElementById('results').style.display = 'none';
+        });
+
+        document.getElementById('multipleItems').addEventListener('change', function() {
+            document.getElementById('addTaxForm').style.display = 'none';
+            document.getElementById('removeTaxForm').style.display = 'none';
+            document.getElementById('multipleItemsForm').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+        });
+
+        // Toggle custom rate input
+        document.getElementById('taxRate').addEventListener('change', function() {
+            document.getElementById('customRate').style.display = 
+                this.value === 'custom' ? 'block' : 'none';
+        });
+
+        document.getElementById('inclusiveTaxRate').addEventListener('change', function() {
+            document.getElementById('inclusiveCustomRate').style.display = 
+                this.value === 'custom' ? 'block' : 'none';
+        });
+
+        // Add/Remove items
+        document.getElementById('addItem').addEventListener('click', function() {
+            const container = document.getElementById('itemsContainer');
+            const newItem = container.children[0].cloneNode(true);
+            // Clear input values
+            newItem.querySelectorAll('input').forEach(input => input.value = '');
+            container.appendChild(newItem);
+        });
+
+        document.getElementById('removeItem').addEventListener('click', function() {
+            const container = document.getElementById('itemsContainer');
+            if (container.children.length > 1) {
+                container.removeChild(container.lastChild);
+            }
+        });
+
+        // Calculate tax (Add Tax)
+        function calculateAddTax(e) {
+            e.preventDefault();
+            const amount = parseFloat(document.getElementById('baseAmount').value);
+            const rateSelect = document.getElementById('taxRate');
+            const rate = rateSelect.value === 'custom' 
+                ? parseFloat(document.getElementById('customRate').value) 
+                : parseFloat(rateSelect.value);
+
+            const taxAmount = amount * (rate / 100);
+            const totalAmount = amount + taxAmount;
+
+            updateResults(amount, taxAmount, totalAmount, rate);
+        }
+
+        // Calculate tax (Remove Tax)
+        function calculateRemoveTax(e) {
+            e.preventDefault();
+            const totalAmount = parseFloat(document.getElementById('inclusiveAmount').value);
+            const rateSelect = document.getElementById('inclusiveTaxRate');
+            const rate = rateSelect.value === 'custom' 
+                ? parseFloat(document.getElementById('inclusiveCustomRate').value) 
+                : parseFloat(rateSelect.value);
+
+            const amount = totalAmount / (1 + (rate / 100));
+            const taxAmount = totalAmount - amount;
+
+            updateResults(amount, taxAmount, totalAmount, rate);
+        }
+
+        // Calculate multiple items
+        function calculateMultipleItems(e) {
+            e.preventDefault();
+            let totalNet = 0;
+            let totalTax = 0;
+            const items = [];
+
+            document.querySelectorAll('.tax-rate-info').forEach(item => {
+                const description = item.querySelector('.item-description').value || 'Item';
+                const amount = parseFloat(item.querySelector('.item-amount').value) || 0;
+                const rate = parseFloat(item.querySelector('.item-tax-rate').value) || 0;
+                const tax = amount * (rate / 100);
+
+                totalNet += amount;
+                totalTax += tax;
+                items.push({ description, amount, rate, tax });
+            });
+
+            const totalGross = totalNet + totalTax;
+            const effectiveRate = (totalTax / totalNet) * 100;
+
+            updateResults(totalNet, totalTax, totalGross, effectiveRate, items);
+        }
+
+        // Update results
+        function updateResults(net, tax, gross, rate, items = null) {
+            // Update summary cards
+            document.getElementById('netAmount').textContent = formatCurrency(net);
+            document.getElementById('taxAmount').textContent = formatCurrency(tax);
+            document.getElementById('grossAmount').textContent = formatCurrency(gross);
+            document.getElementById('taxRateDisplay').textContent = `at ${rate.toFixed(1)}%`;
+
+            // Update breakdown
+            let breakdownHtml = `
+                <div class="tax-breakdown-item">
+                    <span>Net Amount:</span>
+                    <span>${formatCurrency(net)}</span>
+                </div>
+            `;
+
+            if (items) {
+                items.forEach(item => {
+                    breakdownHtml += `
+                        <div class="tax-breakdown-item">
+                            <span>${item.description} (${item.rate}% tax):</span>
+                            <span>+${formatCurrency(item.tax)}</span>
+                        </div>
+                    `;
+                });
+            } else {
+                breakdownHtml += `
+                    <div class="tax-breakdown-item">
+                        <span>Tax (${rate.toFixed(1)}%):</span>
+                        <span>+${formatCurrency(tax)}</span>
+                    </div>
+                `;
+            }
+
+            breakdownHtml += `
+                <div class="tax-breakdown-item">
+                    <span>Gross Amount:</span>
+                    <span>${formatCurrency(gross)}</span>
+                </div>
+            `;
+            document.getElementById('taxBreakdown').innerHTML = breakdownHtml;
+
+            // Update chart
+            updateChart(net, tax);
+
+            // Show results
+            document.getElementById('results').style.display = 'block';
+        }
+
+        // Update tax chart
+        function updateChart(net, tax) {
+            const data = {
+                labels: ['Net Amount', 'Tax Amount'],
+                datasets: [{
+                    data: [net, tax],
+                    backgroundColor: ['#28a745', '#dc3545'],
+                    borderWidth: 1
+                }]
+            };
+
+            if (taxChart) {
+                taxChart.destroy();
+            }
+
+            taxChart = new Chart(document.getElementById('taxChart'), {
+                type: 'doughnut',
+                data: data,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Format currency
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(value);
+        }
+
+        // Event listeners
+        document.getElementById('addTaxForm').addEventListener('submit', calculateAddTax);
+        document.getElementById('removeTaxForm').addEventListener('submit', calculateRemoveTax);
+        document.getElementById('multipleItemsForm').addEventListener('submit', calculateMultipleItems);
+
+        // Reset forms
+        const resetForm = (formId) => {
+            document.getElementById(formId).addEventListener('reset', () => {
+                document.getElementById('results').style.display = 'none';
+                if (taxChart) taxChart.destroy();
+            });
+        };
+
+        resetForm('addTaxForm');
+        resetForm('removeTaxForm');
+        resetForm('multipleItemsForm');
+    </script>
+</body>
+</html> 
